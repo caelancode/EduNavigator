@@ -1,14 +1,161 @@
 # EduNavigator — Comprehensive Audit Prompt
 
-> **Instructions:** You are receiving this document along with (1) the original project plan (`CLAUDE.md`) and (2) the full EduNavigator codebase. Your job is to conduct three independent audit passes, then synthesize findings into actionable deliverables. You did not build this app. Approach it with fresh eyes and healthy skepticism.
+> **Instructions:** This document is entirely self-contained. You need nothing else. It includes the original requirements document, the codebase location, orientation, the builder's honest self-assessment, and three complete audit passes to execute. Clone the repo, read the code, and produce the deliverables described at the end.
 
 ---
 
-## Codebase Orientation
+## 1. The Codebase
 
-EduNavigator is a stateless React 18 SPA that helps educators find evidence-based strategies for students with significant cognitive disabilities. It was built over 6 phases in a single session by a Claude instance following the spec in `CLAUDE.md`.
+**GitHub:** https://github.com/caelancode/EduNavigator
+**Live app:** https://edu-navigator-eight.vercel.app
 
-### Architecture (How Data Flows)
+Clone it and run:
+```bash
+git clone https://github.com/caelancode/EduNavigator.git
+cd EduNavigator
+npm install
+npm run typecheck    # tsc --noEmit → 0 errors
+npm run lint         # eslint → 0 errors, 7 warnings
+npm test             # vitest → 115/115 passing
+npm run build        # vite build → ~83KB gzipped
+```
+
+---
+
+## 2. Original Requirements Document
+
+The following is the **original tech requirements specification** that this app was built against. The implementation also used a more detailed build spec (`CLAUDE.md` in the repo) — but this document is the source of truth for what was intended.
+
+### §1 System Overview
+
+EduNavigator is a web-based, AI-assisted instructional decision-support tool designed for educators serving students with significant cognitive disabilities. The system supports educators in identifying, understanding, and applying evidence-based instructional strategies through a structured interaction model that combines educator inputs, a constrained AI Chat interface, and a dynamically generated Workspace.
+
+EduNavigator is not an instructional delivery system, student data system, or IEP authoring tool. It does not store student information, retain user sessions, or persist educator edits beyond a single session. All interactions are stateless and ephemeral by design.
+
+Primary users include general educators, special educators, and paraprofessionals seeking instructional strategies aligned to student needs and instructional contexts.
+
+### §2 Core Design Philosophy
+
+The tool is structured around a deliberate separation of roles:
+- **Left Rail**: educator navigation, intent-setting
+- **Chat**: conversational sense-making with a "sage buddy and advisor"
+- **Workspace**: a stable snapshot of evidence-supported instructional strategies
+- **Export**: a refined, educator-ready instructional plan
+
+### §3 Tool Scope
+
+Single-page, no-login web application. Educators can:
+1. Define instructional context and intent
+2. Engage in a conversational exchange with an AI advisor
+3. View evidence-grounded instructional strategies
+4. Export a concise instructional plan
+
+No user accounts, saved sessions, or personalization over time.
+
+### §4 Left Rail Structure
+
+**Learner Portrait — Core Context (Always Visible)**
+- Grade / Age Band
+- Instructional Setting
+- Instructional Grouping
+- Time Available (minutes)
+
+Function: establishes baseline instructional constraints, included in every AI request, strongly constrains retrieval eligibility.
+
+**Learner Characteristics (Collapsed)** — optional, multi-select. "Not Specified" always available. Refines retrieval, maps to document-level tags. Does not trigger clinical or diagnostic guidance.
+
+**Technology Context (Collapsed)** — no tech / minimal tech / specialized tech. Prevents unrealistic recommendations. Used as a negative retrieval constraint.
+
+**Primary Support Area (Required)** — single-select:
+- Instructional Support
+- Behavior Support
+- Communication & AAC
+- Functional & Life Skills
+- Collaboration & Planning
+
+Central navigational decision. Determines eligible sources, strategy types, and chat framing.
+
+**Sub-Area (Conditional)** — appears after Primary Support Area selection. Finite, predefined options. Secondary retrieval constraint.
+
+**Output Preferences (Collapsed)** — step-by-step, scripts, quick ideas, rationale. Adjusts tone and presentation. Does not affect strategy eligibility.
+
+**Role Perspective (Collapsed)** — general educator, special educator, paraprofessional, related service provider. Adjusts language and assumptions. Supports the "sage buddy" tone.
+
+**Update Guidance Button** — applies Left Rail selections to future responses. Does not clear chat. Does not retroactively alter prior outputs.
+
+### §5 Chat: "Sage Buddy and Advisor"
+
+The chat supports educator thinking and reflection. It behaves like an experienced colleague, a calm coach, a supportive advisor. Encourages inclusive practices.
+
+Characteristics:
+- Opening response to guide the conversation based on left rail selections
+- Conversational and non-robotic
+- May ask clarifying questions
+- May explore ideas beyond what appears in the workspace
+- Chat log can be copied or exported
+
+**Critical Constraint:** The chat is not authoritative. Only evidence-supported strategies appear in the workspace.
+
+### §6 Workspace: Evidence Snapshot
+
+Provides a trustworthy snapshot of instructional strategies currently supported by evidence. Chat implicitly guides the strategies displayed, while also allowing educators to explicitly request alternatives.
+
+Display: 3 selectable strategy cards for export. Each card includes: strategy title, why this works, concrete "what to do" steps, sources.
+
+Generation: strategies extracted from retrieved, tagged sources. Each includes a direct supporting excerpt and human-readable source reference. Users will be able to rate strategies.
+
+Constraints: no editing or pinning, no accumulation across turns, workspace reflects most recent evidence state only.
+
+### §7 Knowledge Base & Tagging Framework
+
+Source materials: full-text journal articles, summarized articles, technical assistance center resources, instructional websites. Documents uploaded in full, no manual chunking.
+
+Tagging criteria (document-level): disability, age/grade band, instructional setting, content area, functional skills, delivery method, technology requirements, evidence of strength, helpfulness to educators.
+
+Runtime flow: Left Rail context → tag filtering → retrieval → strategy extraction → workspace
+
+### §8 Export
+
+Generate a concise instructional plan based on the workspace. Triggered by "Export My Plan." Inputs: Left Rail context + current workspace strategies. Excluded: chat transcript, full source documents, prior session data. Output: one-page (per strategy) instructional plan with refined language.
+
+### §9 Technical Architecture
+
+Frontend renders Left Rail, chat, workspace, and export views. Contains no AI logic, retrieval logic, or inference. AI orchestration & RAG layer handles system instructions, retrieval constraints, text generation, structured JSON outputs. Minimal application code handles request construction, delimiter detection, JSON validation, failure handling.
+
+**Deterministic Workspace Rendering:** workspace content rendered only from validated JSON. Chat text is never parsed for workspace content. If JSON is missing or invalid, workspace remains empty or shows controlled fallback.
+
+**AI Response Contract:** each response must include (1) educator-facing text, (2) fixed delimiter, (3) JSON array of strategy objects with: title, why_fits, how_to, supporting_excerpt, source_ref. Malformed outputs fail gracefully.
+
+**One API call per educator action.** No background, polling, or UI-triggered calls.
+
+### §10-12 Performance, Cost, Security
+
+- One AI call per chat turn, one per export action
+- No background processing or polling
+- No PII collection
+- No persistent storage
+- Sessions are stateless and ephemeral
+
+### §13 Explicit Non-Goals
+
+- User accounts or authentication
+- Saved sessions or conversation history
+- Persistent personalization or profiles
+- Educator-authored or user-uploaded content
+- Native mobile applications
+
+### §14 Success Criteria
+
+- Educators understand the Left Rail as navigation (not a form/survey)
+- Chat feels supportive and human
+- Workspace strategies are clearly evidence-grounded
+- Empty states behave correctly
+
+---
+
+## 3. Codebase Orientation
+
+### Architecture (Data Flow)
 
 ```
 User Input (Left Rail)
@@ -28,21 +175,21 @@ Raw text response returned to client
 parseResponse() in src/services/response-parser.ts
     ↓ 8-step pipeline: empty check → find delimiter → split → JSON.parse → array check → Zod validate → DOMPurify sanitize → return
     ↓
-ApiResult discriminated union: { ok: true, chatText, strategies } | { ok: false, error, chatText? }
+ApiResult: { ok: true, chatText, strategies } | { ok: false, error, chatText? }
     ↓
-chatText → ChatContext → Chat panel (MessageList)
+chatText → ChatContext → Chat panel
 strategies → WorkspaceContext → Workspace panel (StrategyCards)
 ```
 
-### File Structure (Key Paths)
+### File Structure
 
 ```
-api/chat.ts                          ← Vercel Edge Function (CRITICAL: trust boundary #1)
+api/chat.ts                          ← Vercel Edge Function (trust boundary #1)
 src/services/
-  response-parser.ts                 ← Response parsing pipeline (CRITICAL: trust boundary #2)
+  response-parser.ts                 ← 8-step parsing pipeline (trust boundary #2)
   json-validator.ts                  ← Zod schema for Strategy objects
   request-builder.ts                 ← Builds API request, sanitizes input
-  customgpt.ts                       ← API client (name is legacy — actually calls Claude)
+  customgpt.ts                       ← API client (legacy name — calls Claude)
   error-handler.ts                   ← Error code → display message mapping
 src/contexts/
   LeftRailContext.tsx                 ← Educator input state (useReducer, 11 actions)
@@ -54,368 +201,220 @@ src/components/
   chat/                              ← ChatPanel, MessageList, ChatMessage, ChatInput, TypingIndicator, ChatCopyButton
   workspace/                         ← WorkspacePanel, StrategyCard + sub-components, Empty/Loading/Error states
   export/                            ← ExportView (print-only), ExportHeader, ExportStrategyPage, ExportButton
-  layout/                            ← AppShell, TopBar, ThreePanelLayout (responsive with mobile tabs)
+  layout/                            ← AppShell, TopBar, ThreePanelLayout (responsive mobile tabs)
   ui/                                ← 8 shared primitives (Button, Dropdown, RadioGroup, MultiSelect, CollapsibleSection, Card, LoadingSpinner, ErrorBanner)
-src/types/                           ← TypeScript interfaces (left-rail, chat, api, strategy, export)
-src/constants/left-rail-options.ts   ← All dropdown/radio option arrays with labels
+src/types/                           ← TypeScript interfaces
+src/constants/left-rail-options.ts   ← All dropdown/radio option arrays
 src/__tests__/                       ← 115 tests across 20 files
-```
-
-### Commands
-
-```bash
-npm run typecheck    # tsc --noEmit (should be 0 errors)
-npm run lint         # eslint (should be 0 errors, 7 warnings from react-refresh on context files)
-npm test             # vitest run (should be 115/115 passing)
-npm run build        # tsc && vite build (should produce ~83KB gzipped bundle)
 ```
 
 ### Known API Pivot
 
-The original `CLAUDE.md` spec references "CustomGPT" as the AI backend. During development, CustomGPT required a business email to sign up, so the backend was switched to the **Anthropic Claude API** (Messages API, claude-sonnet-4-20250514). The file `src/services/customgpt.ts` retains the legacy name. The Edge Function at `api/chat.ts` calls the Anthropic API directly and embeds the system prompt. This pivot is NOT reflected in `CLAUDE.md` — treat the spec's CustomGPT references as "the AI backend" generically.
+The original spec references "CustomGPT" as the AI backend. During development, CustomGPT required a business email, so the backend was switched to the **Anthropic Claude API** (Messages API, claude-sonnet-4-20250514). The file `src/services/customgpt.ts` retains the legacy name. The Edge Function at `api/chat.ts` calls Anthropic directly and embeds the system prompt. Treat spec references to "CustomGPT" as "the AI backend" generically.
 
 ---
 
-## Builder's Honest Self-Assessment
+## 4. Builder's Honest Self-Assessment
 
-I built this. Here's where I know the weaknesses are. **Dig into these areas first.**
+This app was built by a Claude instance in a single session. Here are the known weaknesses. **Dig into these first.**
 
-### Areas I'm Least Confident About
+### Weakest Areas
 
-1. **Duplicated message-sending logic.** `ChatInput.tsx` and `UpdateGuidanceButton.tsx` contain nearly identical 40-line blocks for constructing messages, dispatching to contexts, calling `sendMessage()`, and handling results. This should have been extracted to a `useSendMessage()` hook. It wasn't. Check both files — they could drift apart silently.
+1. **Duplicated message-sending logic.** `src/components/chat/ChatInput.tsx` and `src/components/left-rail/UpdateGuidanceButton.tsx` contain nearly identical 40-line blocks. Should be a `useSendMessage()` hook. Check both — they could drift apart.
 
-2. **Error display is split and inconsistent.** When an API call fails, the error message goes to BOTH `ChatContext.state.error` (displayed as a banner in `ChatPanel`) AND `WorkspaceContext.error` (displayed in `WorkspaceError`). These show different text for the same failure. A user sees two error messages with different wording. This is a real UX bug.
+2. **Error display is split and inconsistent.** API failures dispatch to BOTH `ChatContext.state.error` (banner in ChatPanel) AND `WorkspaceContext.error` (banner in WorkspaceError). User sees two different error messages for the same failure.
 
-3. **System prompt is hardcoded in the Edge Function.** The entire system prompt (~2KB) is a string literal in `api/chat.ts`. To change the prompt, you must redeploy. The spec implied the prompt would be managed externally. This is a deployment friction issue, not a bug.
+3. **System prompt is hardcoded in the Edge Function.** `api/chat.ts` contains the entire system prompt as a string literal. Changing it requires redeployment.
 
-4. **No E2E tests.** The spec calls for Playwright E2E tests with axe-core integration. They were never written. The 115 tests are all unit/component-level via Vitest + React Testing Library. There is no automated cross-browser testing.
+4. **No E2E tests.** Spec requires Playwright + axe-core. All 115 tests are unit/component-level via Vitest. No automated cross-browser testing.
 
-5. **The "LearnerPortrait" component is misnamed.** It only shows grade band, setting, grouping, and time — not the actual learner characteristics (communication level, mobility, sensory, behavioral). The spec says it should summarize the learner profile. It's more of a "ContextSummary" in practice.
+5. **LearnerPortrait is misnamed.** Only shows grade band, setting, grouping, time — not learner characteristics. More of a "ContextSummary."
 
-6. **No first-use experience.** When you open the app, you see an empty Chat panel and an empty Workspace. There's a small text hint in the Chat empty state and another in the Workspace empty state, but no onboarding, no welcome message, no guided walkthrough. An educator opening this for the first time may have no idea what to do.
+6. **No first-use experience.** No welcome message, no onboarding, no guided walkthrough. Just empty panels with small text hints.
 
-7. **No loading animation on Workspace transition.** When strategies arrive, they just appear. No entrance animation, no staggered reveal. The spec mentions "ARIA live region announcements on Workspace updates" which we have, but the visual transition is abrupt.
+7. **No loading animation on Workspace.** Strategies appear instantly with no transition.
 
-8. **Export is print-only.** The spec mentions `@react-pdf/renderer` as a fallback for PDF download. Only `window.print()` was implemented. Some educators may not understand "print to PDF" workflows.
+8. **Export is print-only.** `window.print()` only. No `@react-pdf/renderer` fallback.
 
-9. **Chat persona is undefined on the client side.** The system prompt in `api/chat.ts` defines "Sage Buddy and Advisor" but there's no persona name, avatar, or branding in the Chat UI itself. Assistant messages look generic.
+9. **Chat persona is undefined in UI.** System prompt defines "Sage Buddy and Advisor" but Chat UI shows generic unstyled assistant messages. No name, avatar, or branding.
 
-10. **No rate limiting on the client.** The spec calls for "30 requests/IP/5min at edge, debounce (500ms) on client." The client debounce exists (500ms in ChatInput). The edge-level rate limiting does NOT exist — we only check if the upstream API returns 429. There's no server-side rate limiter in `api/chat.ts`.
+10. **No edge-level rate limiting.** Spec calls for 30 req/IP/5min. Only client debounce (500ms) exists. `api/chat.ts` has no server-side rate limiter.
 
-### Areas That Are Solid
+### Strongest Areas
 
-- **Response parser** — Full 8-step pipeline, all 11 adversarial test cases passing, DOMPurify sanitization on every field. This is the strongest module.
-- **TypeScript strictness** — `strict: true`, no `any`, no `@ts-ignore` anywhere. Types match the spec exactly.
-- **Accessibility foundations** — Skip-to-content link, ARIA landmarks on all panels, `aria-live` regions, keyboard-navigable tabs, forced-colors fallback, focus-visible indicators.
-- **Left Rail** — All 13 components work, state flows correctly, SubArea conditionally appears based on SupportArea, minimum selections gate the Update Guidance button.
-- **Test coverage on services** — Response parser (15 tests), JSON validator (9 tests), request builder (4 tests), ChatContext reducer (4 tests), WorkspaceContext (6 tests). Services are well-tested.
-- **Security posture** — API key server-side only, CSP headers configured, DOMPurify on all inbound content, input sanitization (2000 char limit, control char stripping), path parameter validation on Edge Function.
+- **Response parser** — full 8-step pipeline, 15 adversarial tests, DOMPurify on all fields
+- **TypeScript strictness** — `strict: true`, zero `any`, zero `@ts-ignore`
+- **Accessibility foundations** — skip link, ARIA landmarks, live regions, keyboard tabs, forced-colors
+- **Left Rail** — all 13 components, correct state flow, conditional SubArea, minimum selections gate
+- **Security** — API key server-side only, CSP headers, DOMPurify, input sanitization, path validation
 
 ---
 
 ## PASS 1: Engineering Audit (Senior Engineer Lens)
 
-Approach this as a senior engineer doing a pre-production code review. You are deciding whether this is ready for educators to use.
-
 ### 1.1 Specification Compliance Matrix
 
-Open `CLAUDE.md` and go through it section by section. For every requirement, check whether the implementation matches. Produce a table:
+Audit the implementation against BOTH the original requirements (Section 2 above) AND the detailed build spec (`CLAUDE.md` in the repo). For every requirement, produce:
 
-| Section | Requirement | Status | Notes |
+| Source | Requirement | Status | Notes |
 |---|---|---|---|
-| §1 | Stateless SPA, no database | ? | Check for any persistence |
-| §1 | Single API call per interaction | ? | Check both ChatInput and UpdateGuidanceButton |
+| §4 Left Rail | Learner Portrait always visible | ? | |
+| §5 Chat | Opening response guides conversation | ? | |
+| §6 Workspace | 3 selectable strategy cards | ? | |
+| §9 Architecture | Deterministic workspace rendering | ? | |
 | ... | ... | ... | ... |
 
-Status values: `✅ Implemented` | `⚠️ Partially` | `❌ Missing` | `↔️ Deviated`
+Status: `✅ Implemented` | `⚠️ Partially` | `❌ Missing` | `↔️ Deviated`
 
 **Pay special attention to:**
-- §2 Tech Stack — verify every library listed is actually used and at the specified version. Check `package.json`.
-- §4 Component Map — verify every component listed exists. Check for any missing components.
-- §7 CustomGPT Integration Spec — the response parser pipeline, delimiter contract, error taxonomy. This is the most critical section. Line-by-line.
-- §10 Security Checklist — every bullet point. Grep the `dist/` build output for API keys. Check CSP headers in `vercel.json`. Verify rate limiting (spoiler: edge-level rate limiting is missing).
-- §11 Accessibility Requirements — check every landmark, live region, keyboard interaction, contrast requirement against the actual implementation.
+- Left Rail structure (§4) — does the implementation match the specified sections, collapse behavior, and support area options?
+- Chat persona (§5) — "opening response to guide the user conversation based on left rail selections" — is this implemented?
+- Workspace constraints (§6) — "no editing or pinning, no accumulation across turns" — verify
+- AI Response Contract (§9/§11 in original, §7 in CLAUDE.md) — line-by-line
+- Success criteria (§14) — evaluate each one honestly
+- Security checklist in CLAUDE.md §10 — every bullet point
+- Accessibility requirements in CLAUDE.md §11 — every landmark, live region, keyboard interaction
 
 ### 1.2 Code Quality Review
 
-For each of these files, assess whether the code reads like senior-level TypeScript:
+Review these critical files for senior-level TypeScript quality:
+- `src/services/response-parser.ts` — 8-step pipeline clarity
+- `api/chat.ts` — Edge Function security, system prompt structure
+- `src/contexts/WorkspaceContext.tsx` — re-render concerns from context value changes
+- `src/components/chat/ChatInput.tsx` vs `src/components/left-rail/UpdateGuidanceButton.tsx` — spot the duplication
 
-- `src/services/response-parser.ts` — Is the 8-step pipeline clear? Are edge cases handled? Could a new developer understand it?
-- `api/chat.ts` — Is the Edge Function secure? Is the system prompt well-structured? Is input validation sufficient?
-- `src/contexts/WorkspaceContext.tsx` — Is the state management pattern clean? Any unnecessary re-renders from context value changes?
-- `src/components/chat/ChatInput.tsx` — Is the message-sending logic clean? Spot the duplication with `UpdateGuidanceButton.tsx`.
-- `src/components/workspace/StrategyCard.tsx` — Is the component composition good? Check the sub-component pattern.
-
-Look for:
-- Any `any` types (there should be zero)
-- Any `@ts-ignore` or `@ts-expect-error` (there should be zero)
-- Unhandled async operations (missing try/catch)
-- React hook dependency array issues (missing deps, stale closures)
-- Unnecessary re-renders from context consumption patterns
+Look for: `any` types, `@ts-ignore`, unhandled async, React hook dep issues, unnecessary re-renders.
 
 ### 1.3 Security Deep Dive
 
-- Run `npm run build` then `grep -r "ANTHROPIC\|API_KEY\|sk-ant" dist/` — verify zero matches.
-- Review `api/chat.ts` lines 14–30: Is `isValidRequest()` sufficient? What could a malicious client send?
-- Review `src/services/request-builder.ts` line 30: The control character regex uses an eslint-disable comment. Is the regex correct?
-- Review `vercel.json` CSP: Is `connect-src` appropriately restrictive? Should `style-src 'unsafe-inline'` be there?
-- Check: Is `sessionId` validated anywhere? It's `crypto.randomUUID()` on the client — could a malicious client send a crafted sessionId?
+- `npm run build && grep -r "ANTHROPIC\|API_KEY\|sk-ant" dist/` — must be zero matches
+- `api/chat.ts` `isValidRequest()` — is validation sufficient?
+- `vercel.json` CSP — is `style-src 'unsafe-inline'` necessary?
+- `sessionId` — generated client-side via `crypto.randomUUID()`, sent to API. Validated?
 
 ### 1.4 Response Parser Resilience
 
-The response parser (`src/services/response-parser.ts`) is the trust boundary. Run the test suite and verify all 15 tests pass. Then consider these additional scenarios that may NOT be tested:
-
-- What if Claude returns exactly 2 strategies instead of 3? (Legitimate use case — should work)
-- What if there's extra whitespace or newlines around the delimiter?
-- What if `how_to` contains 4,999 characters (just under the Zod max)?
-- What if `title` contains markdown formatting (`**bold**`, `[links](url)`)?
-- What if the JSON array contains 10 items instead of 3? (Should the parser cap it?)
-- What if Claude ignores the system prompt and returns no delimiter at all? (Already tested — but verify the UX fallback is good)
+Run test suite. Then test these scenarios that may NOT be covered:
+- Claude returns 2 strategies (legitimate — not always 3)
+- Extra whitespace around delimiter
+- `how_to` at 4,999 chars (just under Zod max)
+- JSON array with 10 items (should parser cap it?)
+- Markdown in title field
+- No delimiter at all (tested, but verify UX fallback)
 
 ### 1.5 Test Coverage Gaps
 
-Map every source file to its test file. Identify untested components:
-
-```
-src/components/chat/ChatMessage.tsx     → ? (no dedicated test)
-src/components/chat/ChatCopyButton.tsx  → ? (no dedicated test)
-src/components/chat/TypingIndicator.tsx → ? (no dedicated test)
-src/components/chat/MessageList.tsx     → ? (no dedicated test)
-src/components/export/ExportStrategyPage.tsx → ? (no dedicated test)
-src/components/workspace/WhyFits.tsx    → ? (no dedicated test)
-src/components/workspace/HowTo.tsx      → ? (no dedicated test)
-src/components/workspace/SourceReference.tsx → ? (no dedicated test)
-src/components/workspace/StrategyTitle.tsx  → ? (no dedicated test)
-src/components/workspace/WorkspaceEmpty.tsx → ? (no dedicated test)
-src/components/workspace/WorkspaceLoading.tsx → ? (no dedicated test)
-src/services/customgpt.ts              → ? (no dedicated test — mocking fetch)
-src/services/error-handler.ts          → ? (no dedicated test)
-src/utils/sentry.ts                    → ? (no dedicated test)
-```
-
-Note: Some of these are tested indirectly through parent component tests. Flag which are covered indirectly vs. truly untested.
-
-Also note: **No E2E tests exist.** The spec requires Playwright with axe-core. This is a significant gap.
+Map every source file to its test file. Flag untested components. Note: **no E2E tests exist** despite spec requiring Playwright + axe-core.
 
 ---
 
 ## PASS 2: Educator Experience Audit (UX + Simulated User Testing)
 
-### 2.1 Simulated User Testing Sessions
+### 2.1 Simulated User Testing — Five Personas
 
-Conduct five simulated user testing sessions. For each persona, walk through the app as that person would. Document:
-- **First impression** (what do they see? do they know what this is?)
-- **Task:** Configure context → Get strategies → Review a strategy → Export it
-- **Time to orient** (how long before they understand the interface?)
-- **Friction points** (where do they get stuck?)
-- **Trust signals** (do they trust the strategies? the citations? the AI?)
-- **Likelihood of return** (would they come back? would they recommend it?)
+For each persona, simulate the full task: open app → configure Left Rail → get strategies → review → export. Document first impression, friction points, trust level, likelihood of return.
 
-**Persona 1: Maya — First-Year Special Education Teacher**
-- 24 years old, first teaching job, overwhelmed
-- Comfortable with smartphones, less so with desktop apps
-- Needs practical strategies she can use tomorrow
-- Low confidence in her own expertise, looking for authority
+**Persona 1: Maya** — first-year SpEd teacher, 24, overwhelmed, low tech confidence, needs strategies for tomorrow
+**Persona 2: Tom** — veteran gen ed teacher (25 yrs), skeptical of AI, moderate tech, first time with a student with significant cognitive disabilities
+**Persona 3: Dr. Reyes** — SLP, doctoral level, will check citations immediately, high tech fluency, judges credibility by source quality
+**Persona 4: James** — paraprofessional, told by supervisor to try it, low tech confidence, needs plain language
+**Persona 5: Principal Okafor** — administrator, 3 minutes to form opinion, evaluating for 40-person staff
 
-**Persona 2: Tom — Veteran General Ed Teacher (25 years)**
-- Skeptical of AI tools, "I've seen these fads come and go"
-- Moderate tech skills, uses Google Classroom
-- Has a new student with significant cognitive disabilities in his class for the first time
-- Needs to be convinced this tool knows what it's talking about
+### 2.2 Nielsen's 10 Heuristics
 
-**Persona 3: Dr. Reyes — Speech-Language Pathologist**
-- Doctoral-level clinician, evidence-based practice is her life
-- Will immediately check whether citations are real
-- High tech fluency
-- Looking for strategies specifically for communication support
-- Will judge the tool's credibility by source quality
-
-**Persona 4: James — Paraprofessional**
-- Told by his supervisor to "check out this tool and see if it's useful"
-- Low tech confidence, prefers step-by-step instructions
-- May not know educational terminology like "systematic prompting" or "time delay"
-- Needs everything to be plain language
-
-**Persona 5: Principal Okafor — Building Administrator**
-- Evaluating whether to recommend this to her 40-person staff
-- Will spend 3 minutes max before forming an opinion
-- Cares about: professional appearance, evidence base, ease of use, accessibility compliance
-- Won't actually use strategies — assessing the tool itself
-
-### 2.2 Nielsen's 10 Heuristics Evaluation
-
-Apply each heuristic to each of the four surfaces. Rate violations 0 (none) to 4 (catastrophic).
-
-| Heuristic | Left Rail | Chat | Workspace | Export |
-|---|---|---|---|---|
-| 1. Visibility of system status | | | | |
-| 2. Match between system and real world | | | | |
-| 3. User control and freedom | | | | |
-| 4. Consistency and standards | | | | |
-| 5. Error prevention | | | | |
-| 6. Recognition rather than recall | | | | |
-| 7. Flexibility and efficiency of use | | | | |
-| 8. Aesthetic and minimalist design | | | | |
-| 9. Help users recognize/recover from errors | | | | |
-| 10. Help and documentation | | | | |
+Apply to each surface (Left Rail, Chat, Workspace, Export). Rate violations 0–4.
 
 ### 2.3 User-Facing Text Audit
 
-Review EVERY piece of user-facing text in the app:
-
-- Button labels: "Update Guidance", "Send", "Export", "Copy", "Dismiss error"
-- Placeholders: "Select grade band...", "Type a message...", etc.
-- Empty states: Chat empty message, Workspace empty message
-- Error messages: All 9 error types (see `src/services/error-handler.ts`)
-- Loading messages: "Finding evidence-based strategies..."
-- Section headers: "Learner Characteristics", "Technology Context", "Output Preferences", etc.
-- Portrait display: "Current Context" label
-- Export header: "EduNavigator — Strategy Report", "Educator Context"
-
-For each: Is it plain language? Would a paraprofessional with no EdTech background understand it immediately? Flag anything that assumes knowledge.
+Every button label, placeholder, heading, error message, empty state, loading message. Is it plain language? Would a paraprofessional understand it instantly?
 
 ### 2.4 Chat Persona Audit
 
-Read the system prompt in `api/chat.ts` (lines 29–69). Then review how assistant messages display in the Chat panel (`src/components/chat/ChatMessage.tsx`).
+Is there a persona name, avatar, or branding? Does the persona introduce itself? Is the tone "warm, experienced colleague"?
 
-- Is there a persona name visible to the user? (No — it's just "assistant" styling)
-- Is there an avatar or icon? (No)
-- Does the persona introduce itself on first message? (Depends on Claude's response)
-- Is the tone consistent with "warm, experienced colleague"?
-- Is there any branding that says "this is EduNavigator's advisor"?
+### 2.5 First-Use Experience
 
-### 2.5 First-Use Experience Audit
+Open the app cold. How many seconds to understand what it does? Is the relationship between Left Rail, Chat, and Workspace obvious?
 
-Open the app cold. Document exactly what you see. Then answer:
+### 2.6 Citation Integrity
 
-- How many seconds until the user understands what this app does?
-- Is there a welcome message? (No)
-- Is there a tutorial or guided first step? (No)
-- Does the empty state clearly communicate the workflow? (Partially — small text hints)
-- Would a user know they need to fill out the Left Rail BEFORE chatting? (Unclear)
-- Is the relationship between Left Rail, Chat, and Workspace obvious? (Not explained anywhere)
-
-### 2.6 Citation Integrity Audit
-
-This is **non-negotiable** for an education tool. Review:
-
-- `src/components/workspace/SourceReference.tsx` — Is the citation prominently displayed on each card?
-- Can a strategy card ever render without a citation? (Check Zod schema — `source_ref` is required, min 1 char)
-- What happens if Claude fabricates a citation? Is there a disclaimer anywhere?
-- Is there a way for the user to verify a citation? (No link, no DOI, no search prompt)
-- **Recommendation needed:** Should there be a visible disclaimer like "AI-generated recommendations — verify sources independently"?
+Is `source_ref` prominently displayed? Can a card render without a citation? What if Claude fabricates a citation? Should there be a disclaimer?
 
 ---
 
 ## PASS 3: Visual Design & Polish Audit (Design Critic Lens)
 
-The benchmark is **Khanmigo by Khan Academy** — a polished, warm, trust-inspiring educational AI interface.
+Benchmark: **Khanmigo by Khan Academy**.
 
 ### 3.1 Visual Design Assessment
 
-Evaluate the following against the Khanmigo standard:
+Color palette (warm vs. clinical?), typography hierarchy, spacing/density, iconography (almost none currently), visual warmth (teacher tool vs. admin panel?).
 
-- **Color palette:** The app uses blue primary / green secondary / neutral grays. Is this warm and approachable, or cold and clinical? Education tools should feel inviting.
-- **Typography:** Inter font stack. Is the type hierarchy clear? Are headings, body, labels, and captions visually distinct?
-- **Spacing and density:** Is the Left Rail too dense? Are strategy cards readable? Is there enough whitespace?
-- **Iconography:** The app uses almost no icons (just the workspace empty state book icon and chevrons in collapsible sections). Khanmigo uses rich iconography. Gap?
-- **Visual warmth:** Does this feel like a tool built for teachers, or a developer's admin panel?
+### 3.2 Interaction Design
 
-### 3.2 Interaction Design Assessment
+Loading states, strategy card transitions, mobile tab switching, selection feedback, error recovery UX, chat scroll behavior.
 
-- **Loading states:** When "Update Guidance" is clicked, what does the user see? Is there a skeleton screen? Progress indicator? Just a spinner? How long does it feel?
-- **Strategy card transitions:** Do cards animate in, or just appear?
-- **Mobile tab switching:** Is the transition smooth or jarring?
-- **Selection feedback:** When a strategy card is selected for export, is the visual feedback clear and satisfying?
-- **Error recovery:** When an API call fails, is the retry path obvious?
-- **Chat scroll:** Does auto-scroll to new messages feel natural?
+### 3.3 Khanmigo Benchmark
 
-### 3.3 Khanmigo Benchmark Comparison
-
-Rate each dimension. Values: `Exceeds` | `Matches` | `Below` | `Significantly Below`
+Rate each: `Exceeds` | `Matches` | `Below` | `Significantly Below`
 
 | Dimension | Rating | Notes |
 |---|---|---|
-| Visual warmth and approachability | | |
-| First-visit clarity / onboarding | | |
+| Visual warmth | | |
+| First-visit clarity | | |
 | Typography quality | | |
-| Loading state design | | |
-| Error state design | | |
-| Chat UI design (bubbles, persona, flow) | | |
-| Trust signals (branding, citations, tone) | | |
+| Loading states | | |
+| Error states | | |
+| Chat UI design | | |
+| Trust signals | | |
 | Mobile responsiveness | | |
-| Interaction polish (animations, feedback) | | |
+| Interaction polish | | |
 | Overall professional quality | | |
 
 ### 3.4 Gemini Prompt Package
 
-Write **three ready-to-paste prompts** for Gemini 2.5 Pro. These should be self-contained — I will paste them into Gemini along with screenshots of the current app.
+Write **three ready-to-paste Gemini 2.5 Pro prompts** for visual review with screenshots:
 
-**Prompt 1: Visual Design Review**
-Write a prompt that asks Gemini to evaluate screenshots of EduNavigator against Khanmigo's design language. Ask for specific Tailwind CSS recommendations: color palette changes, spacing adjustments, typography improvements, component-level design fixes. The prompt should reference that this is an education tool for educators with varying tech fluency.
-
-**Prompt 2: Component Redesign Recommendations**
-Write a prompt that asks Gemini to redesign specific components: the Chat message bubbles, the StrategyCard layout, the Left Rail form design, the empty states, and the TopBar. Ask for detailed Tailwind class suggestions and layout changes.
-
-**Prompt 3: Trust & Warmth Audit**
-Write a prompt that asks Gemini to evaluate the app's trust signals, warmth, and approachability compared to Khanmigo. Ask for specific recommendations on: persona branding, welcome experience, citation display, color warmth, illustrations/icons to add, and micro-copy improvements.
+1. **Visual Design Review** — evaluate against Khanmigo, produce Tailwind CSS recommendations
+2. **Component Redesign** — redesign Chat bubbles, StrategyCard, Left Rail, empty states, TopBar
+3. **Trust & Warmth Audit** — persona branding, welcome experience, citation display, color warmth, illustrations
 
 ---
 
 ## Deliverables
 
-After completing all three passes, produce the following files in `docs/audit/`:
+Save all outputs in `docs/audit/`:
 
-### 1. `docs/audit/compliance-matrix.md`
-Full specification compliance matrix. Every requirement from `CLAUDE.md` mapped to implementation status.
+### `docs/audit/compliance-matrix.md`
+Every requirement from both the original spec (Section 2) and `CLAUDE.md` mapped to implementation status.
 
-### 2. `docs/audit/issues-register.md`
-Deduplicated issues from all three passes. Table format:
-
-| ID | Severity | Category | Description | Component | Recommended Fix |
+### `docs/audit/issues-register.md`
+| ID | Severity | Category | Description | Component | Fix |
 |---|---|---|---|---|---|
-| ISS-001 | Critical | Security | No edge-level rate limiting | api/chat.ts | Add IP-based rate limiter |
-| ... | ... | ... | ... | ... | ... |
+Severity: Critical/High/Medium/Low/Cosmetic. Category: Engineering/UX/Design/Security/Accessibility. Sorted by severity.
 
-Severity: Critical / High / Medium / Low / Cosmetic
-Category: Engineering / UX / Design / Security / Accessibility
+### `docs/audit/improvement-plan.md`
+Four sprints:
+- **Sprint 1 (Critical):** Fix before any educator uses this
+- **Sprint 2 (High):** Significantly degrades experience
+- **Sprint 3 (Medium):** Quality of life
+- **Sprint 4 (Low):** Polish and nice-to-haves
 
-Sort by severity, then by category.
+Effort: S (<1hr), M (1-4hr), L (4-8hr), XL (>8hr).
 
-### 3. `docs/audit/improvement-plan.md`
-Issues grouped into four sprints:
+### `docs/audit/gemini-prompts.md`
+Three Gemini prompts from Pass 3.4, ready to paste.
 
-- **Sprint 1 (Critical):** Must fix before any educator uses this. Security issues, data integrity, broken functionality.
-- **Sprint 2 (High):** Significantly degrades experience. UX bugs, missing error handling, accessibility violations.
-- **Sprint 3 (Medium):** Quality of life. Refactoring, visual polish, additional tests.
-- **Sprint 4 (Low/Polish):** Nice-to-haves. Animations, onboarding, advanced features.
-
-Include effort estimates: S (< 1 hour), M (1-4 hours), L (4-8 hours), XL (> 8 hours).
-
-### 4. `docs/audit/gemini-prompts.md`
-The three Gemini prompts from Pass 3, section 3.4. Self-contained, ready to paste.
-
-### 5. `docs/audit/recommendations-beyond-spec.md`
-What should we add that wasn't in the original spec? Consider:
-
-- Trust mechanisms (disclaimers, citation verification, "AI-generated" labels)
-- Onboarding / first-use experience
-- Educator feedback mechanism (was this strategy helpful?)
-- Session summary / history (within session, not persisted)
-- Analytics (anonymous, no PII — what features do educators actually use?)
-- System prompt improvements based on what you observed
-- Accessibility improvements beyond WCAG AA
-- Performance optimizations
-- Error recovery UX patterns
-- Anything else a senior product team would flag
+### `docs/audit/recommendations-beyond-spec.md`
+What should we add beyond the original spec? Trust mechanisms, onboarding, feedback, analytics (no PII), system prompt improvements, accessibility beyond AA, error recovery patterns, anything a senior product team would flag.
 
 ---
 
-## Final Notes for the Auditor
+## Final Notes
 
-- **Be harsh.** The goal is to find every weakness before real educators use this. A missed issue now is a confused teacher later.
-- **Contradictions between passes are valuable.** If Pass 1 says "code is clean" but Pass 2 says "users are confused," that's important signal — clean code doesn't mean good UX.
-- **Prioritize educator impact.** A cosmetic issue that confuses a low-tech teacher is more important than a code smell that only bothers engineers.
-- **The response parser is the strongest module.** If you find issues there, they're significant. Spend time on it.
-- **The first-use experience is the weakest area.** The builder knows it. Dig in.
-- **Check whether the 115 tests actually test meaningful behavior**, not just "component renders without crashing." Some may be shallow.
+- **Be harsh.** Every missed issue is a confused educator.
+- **Contradictions between passes are valuable.**
+- **Prioritize educator impact** over engineering elegance.
+- **The response parser is the strongest module.** If you find issues there, they're significant.
+- **The first-use experience is the weakest area.** The builder knows it.
+- **Check whether the 115 tests test meaningful behavior**, not just "renders without crashing."
