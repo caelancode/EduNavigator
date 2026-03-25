@@ -7,10 +7,8 @@ export function buildApiRequest(
   message: string,
   history: ChatMessage[],
   sessionId: string,
-  projectId: string,
 ): ApiRequest {
   return {
-    projectId,
     sessionId,
     message: sanitizeInput(message),
     context,

@@ -7,7 +7,6 @@ import { sendMessage } from '../../services/customgpt';
 
 const MAX_LENGTH = 2000;
 const DEBOUNCE_MS = 500;
-const PROJECT_ID = 'edunavigator';
 
 export function ChatInput() {
   const [input, setInput] = useState('');
@@ -41,7 +40,6 @@ export function ChatInput() {
       leftRailState,
       [...chatState.messages, userMessage],
       chatState.sessionId,
-      PROJECT_ID,
     );
 
     chatDispatch({ type: 'SET_LOADING', payload: false });

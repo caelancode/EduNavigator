@@ -9,10 +9,8 @@ describe('buildApiRequest', () => {
       'Help me find strategies',
       [],
       'session-123',
-      'project-abc',
     );
 
-    expect(result.projectId).toBe('project-abc');
     expect(result.sessionId).toBe('session-123');
     expect(result.message).toBe('Help me find strategies');
     expect(result.context.gradeBand).toBe('3_5');
@@ -26,7 +24,6 @@ describe('buildApiRequest', () => {
       longMessage,
       [],
       's1',
-      'p1',
     );
     expect(result.message.length).toBeLessThanOrEqual(2000);
     expect(result.message.startsWith('x')).toBe(true);
@@ -38,7 +35,6 @@ describe('buildApiRequest', () => {
       'Hello\x00World\x1F!',
       [],
       's1',
-      'p1',
     );
     expect(result.message).toBe('HelloWorld!');
   });
@@ -57,7 +53,6 @@ describe('buildApiRequest', () => {
       'New message',
       history,
       's1',
-      'p1',
     );
     expect(result.history).toHaveLength(1);
     expect(result.history[0].content).toBe('Previous message');

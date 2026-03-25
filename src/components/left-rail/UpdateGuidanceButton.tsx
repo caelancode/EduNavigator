@@ -5,8 +5,6 @@ import { useChat } from '../../contexts/ChatContext';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { sendMessage } from '../../services/customgpt';
 
-const PROJECT_ID = 'edunavigator';
-
 export function UpdateGuidanceButton() {
   const { state: leftRailState } = useLeftRail();
   const { state: chatState, dispatch: chatDispatch } = useChat();
@@ -39,7 +37,6 @@ export function UpdateGuidanceButton() {
       leftRailState,
       [...chatState.messages, userMessage],
       chatState.sessionId,
-      PROJECT_ID,
     );
 
     chatDispatch({ type: 'SET_LOADING', payload: false });

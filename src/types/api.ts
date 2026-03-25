@@ -3,7 +3,6 @@ import { LeftRailState } from './left-rail';
 import { ChatMessage } from './chat';
 
 export interface ApiRequest {
-  projectId: string;
   sessionId: string;
   message: string;
   context: LeftRailState;

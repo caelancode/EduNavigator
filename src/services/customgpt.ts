@@ -12,15 +12,8 @@ export async function sendMessage(
   context: LeftRailState,
   history: ChatMessage[],
   sessionId: string,
-  projectId: string,
 ): Promise<ApiResult> {
-  const request = buildApiRequest(
-    context,
-    message,
-    history,
-    sessionId,
-    projectId,
-  );
+  const request = buildApiRequest(context, message, history, sessionId);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
