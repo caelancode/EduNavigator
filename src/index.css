@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased;
+  }
+
+  /* Global focus-visible styles */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary-500;
+  }
+
+  /* Skip to content link */
+  .skip-to-content {
+    @apply absolute -top-10 left-4 z-50 rounded-md bg-primary-700 px-4 py-2 text-sm font-medium text-white transition-all;
+  }
+
+  .skip-to-content:focus {
+    @apply top-4;
+  }
+
+  /* Smooth transitions for interactive elements */
+  select,
+  input[type='checkbox'],
+  input[type='radio'],
+  button,
+  textarea {
+    @apply transition-colors duration-150;
+  }
+}
+
+/* Forced colors (high contrast mode) fallback */
+@media (forced-colors: active) {
+  .bg-primary-600,
+  .bg-primary-700 {
+    background-color: Highlight;
+    color: HighlightText;
+  }
+
+  .border-primary-500 {
+    border-color: Highlight;
+  }
+
+  .text-primary-600,
+  .text-primary-700 {
+    color: LinkText;
+  }
+
+  .ring-primary-500 {
+    outline: 2px solid Highlight;
+  }
+
+  [role='alert'] {
+    border: 2px solid Mark;
+  }
+
+  button:disabled {
+    opacity: 1;
+    color: GrayText;
+    border-color: GrayText;
+  }
+}
+
+@media print {
+  /* Hide the app UI */
+  body > #root > *:not(.export-view) {
+    display: none !important;
+  }
+
+  /* Hide skip link in print */
+  .skip-to-content {
+    display: none !important;
+  }
+
+  /* Show the export view */
+  .export-view {
+    display: block !important;
+  }
+
+  /* Page breaks between strategies */
+  .break-before-page {
+    page-break-before: always;
+  }
+
+  /* First strategy should not have a page break */
+  .export-strategy-page:first-child {
+    page-break-before: avoid;
+  }
+
+  /* Clean print styles */
+  body {
+    font-size: 12pt;
+    color: #171717;
+    background: white;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+}
