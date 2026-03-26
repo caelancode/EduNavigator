@@ -114,7 +114,7 @@ export function ChatInput() {
           Send
         </Button>
       </div>
-      <div className="mt-1 text-right text-xs text-neutral-400">
+      <div className="mt-1 text-right text-xs text-neutral-600">
         {input.length}/{MAX_LENGTH}
       </div>
     </div>

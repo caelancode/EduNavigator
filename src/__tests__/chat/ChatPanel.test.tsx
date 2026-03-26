@@ -12,10 +12,20 @@ function renderChatPanel() {
 }
 
 describe('ChatPanel', () => {
-  it('renders the empty state message', () => {
+  it('renders the welcome message', () => {
     renderChatPanel();
     expect(
-      screen.getByText(/select your context/i),
+      screen.getByText(/welcome to edunavigator/i),
+    ).toBeInTheDocument();
+  });
+
+  it('renders suggestion chips in welcome state', () => {
+    renderChatPanel();
+    expect(
+      screen.getByRole('button', { name: /reading strategies/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /sensory cooldown/i }),
     ).toBeInTheDocument();
   });
 

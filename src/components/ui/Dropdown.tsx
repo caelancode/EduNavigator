@@ -26,7 +26,7 @@ export function Dropdown({
     <div className="space-y-1">
       <label
         htmlFor={selectId}
-        className="block text-sm font-medium text-neutral-700"
+        className="block text-sm font-semibold text-neutral-700"
       >
         {label}
       </label>
@@ -34,7 +34,7 @@ export function Dropdown({
         id={selectId}
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
-        className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+        className="block h-12 w-full cursor-pointer appearance-none rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 shadow-sm transition-shadow focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-400"
       >
         <option value="" disabled>
           {placeholder}

@@ -21,12 +21,12 @@ describe('ExportHeader', () => {
       ...initialLeftRailState,
       gradeBand: '3_5' as const,
       setting: 'general_ed' as const,
-      supportArea: 'literacy',
+      supportArea: 'instructional_support',
     };
     render(<ExportHeader context={context} generatedAt={Date.now()} />);
     expect(screen.getByText('Grades 3–5')).toBeInTheDocument();
     expect(screen.getByText('General Education')).toBeInTheDocument();
-    expect(screen.getByText('Literacy')).toBeInTheDocument();
+    expect(screen.getByText('Instructional Support')).toBeInTheDocument();
   });
 
   it('omits rows with no value', () => {

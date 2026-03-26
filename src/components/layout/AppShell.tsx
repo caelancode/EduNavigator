@@ -30,6 +30,10 @@ export function AppShell({
           rightPanel={rightPanel}
         />
       </main>
+      <footer className="shrink-0 border-t border-neutral-200 bg-neutral-50 px-4 py-2 text-center text-xs text-neutral-600">
+        <p>Strategies are AI-generated and should be reviewed by qualified professionals before implementation. Sources should be verified independently.</p>
+        <p className="mt-0.5 text-neutral-500">No personal data is collected or stored. Your inputs are not saved between sessions.</p>
+      </footer>
     </div>
   );
 }

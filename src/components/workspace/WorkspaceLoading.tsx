@@ -1,14 +1,17 @@
-import { LoadingSpinner } from '../ui';
+import { StrategyCardSkeleton } from './StrategyCardSkeleton';
 
 export function WorkspaceLoading() {
   return (
-    <div className="flex h-full items-center justify-center p-6">
-      <div className="text-center">
-        <LoadingSpinner label="Loading strategies..." size="lg" />
-        <p className="mt-3 text-sm text-neutral-500">
-          Finding evidence-based strategies...
-        </p>
+    <div className="h-full overflow-y-auto p-4" role="status">
+      <div className="mb-3">
+        <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
       </div>
+      <div className="space-y-4">
+        <StrategyCardSkeleton />
+        <StrategyCardSkeleton />
+        <StrategyCardSkeleton />
+      </div>
+      <span className="sr-only">Finding evidence-based strategies...</span>
     </div>
   );
 }

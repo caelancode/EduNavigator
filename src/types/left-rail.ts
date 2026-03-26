@@ -7,16 +7,12 @@ export type Setting =
   | 'home';
 export type Grouping = 'one_on_one' | 'small_group' | 'whole_class' | 'mixed';
 export type TimeRange = '5_10' | '11_20' | '21_30' | '31_45' | '46_plus';
-export type TechContext =
-  | 'no_tech'
-  | 'basic_devices'
-  | 'full_tech'
-  | 'assistive_tech';
+export type TechContext = 'no_tech' | 'minimal_tech' | 'specialized_tech';
 export type OutputPreference =
-  | 'visual_supports'
-  | 'lesson_plan_snippet'
-  | 'data_collection_idea'
-  | 'parent_communication';
+  | 'step_by_step'
+  | 'scripts'
+  | 'quick_ideas'
+  | 'rationale';
 export type RolePerspective =
   | 'classroom_teacher'
   | 'special_educator'

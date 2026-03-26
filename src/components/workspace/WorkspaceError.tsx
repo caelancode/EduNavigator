@@ -20,6 +20,7 @@ export function WorkspaceError({
       <ErrorBanner
         message={display?.message ?? message}
         onDismiss={onDismiss}
+        onRetry={display?.showRetry ? onDismiss : undefined}
       />
     </div>
   );

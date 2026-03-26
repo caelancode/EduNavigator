@@ -50,10 +50,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleSetStrategies = useCallback((newStrategies: Strategy[]) => {
+    if (selectedIndices.size > 0) {
+      const confirmed = window.confirm(
+        'You have strategies selected for export. Receiving new strategies will clear your selection. Continue?'
+      );
+      if (!confirmed) return;
+    }
     setStrategies(newStrategies);
     setSelectedIndices(new Set());
     setError(null);
-  }, []);
+  }, [selectedIndices]);
 
   return (
     <WorkspaceContext.Provider

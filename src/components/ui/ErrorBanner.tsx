@@ -1,9 +1,10 @@
 interface ErrorBannerProps {
   message: string;
   onDismiss?: () => void;
+  onRetry?: () => void;
 }
 
-export function ErrorBanner({ message, onDismiss }: ErrorBannerProps) {
+export function ErrorBanner({ message, onDismiss, onRetry }: ErrorBannerProps) {
   return (
     <div
       role="alert"
@@ -23,11 +24,20 @@ export function ErrorBanner({ message, onDismiss }: ErrorBannerProps) {
         />
       </svg>
       <p className="flex-1 text-sm text-red-700">{message}</p>
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="shrink-0 rounded-md bg-red-100 px-3 py-2.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500"
+        >
+          Try again
+        </button>
+      )}
       {onDismiss && (
         <button
           type="button"
           onClick={onDismiss}
-          className="text-red-500 hover:text-red-700"
+          className="flex h-[44px] w-[44px] items-center justify-center rounded text-red-500 hover:bg-red-100 hover:text-red-700"
           aria-label="Dismiss error"
         >
           <svg

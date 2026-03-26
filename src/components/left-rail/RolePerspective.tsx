@@ -5,9 +5,10 @@ import type { RolePerspective as RolePerspectiveType } from '../../types/left-ra
 
 export function RolePerspective() {
   const { state, dispatch } = useLeftRail();
+  const selectedLabel = ROLE_PERSPECTIVE_OPTIONS.find((o) => o.value === state.rolePerspective)?.label;
 
   return (
-    <CollapsibleSection title="Role Perspective">
+    <CollapsibleSection title="Role Perspective" badge={selectedLabel}>
       <RadioGroup
         legend="Your Role"
         name="role-perspective"

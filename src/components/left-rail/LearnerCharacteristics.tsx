@@ -11,8 +11,15 @@ export function LearnerCharacteristics() {
   const { state, dispatch } = useLeftRail();
   const { learnerCharacteristics } = state;
 
+  const totalSelected = [
+    ...learnerCharacteristics.communicationLevel,
+    ...learnerCharacteristics.mobilityLevel,
+    ...learnerCharacteristics.sensoryConsiderations,
+    ...learnerCharacteristics.behavioralConsiderations,
+  ].length;
+
   return (
-    <CollapsibleSection title="Learner Characteristics">
+    <CollapsibleSection title="Learner Characteristics" badge={totalSelected > 0 ? `${totalSelected} selected` : undefined}>
       <div className="space-y-4">
         <MultiSelect
           legend="Communication Level"

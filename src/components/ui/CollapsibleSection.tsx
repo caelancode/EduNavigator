@@ -4,12 +4,14 @@ interface CollapsibleSectionProps {
   title: string;
   children: ReactNode;
   defaultOpen?: boolean;
+  badge?: string;
 }
 
 export function CollapsibleSection({
   title,
   children,
   defaultOpen = false,
+  badge,
 }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -19,11 +21,18 @@ export function CollapsibleSection({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
-        className="flex w-full items-center justify-between px-1 py-3 text-sm font-medium text-neutral-700 hover:text-neutral-900"
+        className="group flex w-full items-center justify-between px-1 py-4 font-semibold text-neutral-700 hover:text-neutral-900"
       >
-        {title}
+        <span className="flex items-center gap-2">
+          {title}
+          {badge && !isOpen && (
+            <span className="rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700">
+              {badge}
+            </span>
+          )}
+        </span>
         <svg
-          className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`h-5 w-5 text-neutral-500 transition-transform duration-200 group-hover:text-neutral-700 ${isOpen ? 'rotate-180' : ''}`}
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"

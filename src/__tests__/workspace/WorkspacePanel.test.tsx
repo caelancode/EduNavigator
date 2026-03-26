@@ -100,7 +100,7 @@ describe('WorkspacePanel', () => {
     );
 
     await user.click(
-      screen.getByLabelText(/select strategy one for export/i),
+      screen.getByRole('button', { name: /add strategy one to export/i }),
     );
     expect(screen.getByText('1 selected')).toBeInTheDocument();
   });
@@ -113,13 +113,16 @@ describe('WorkspacePanel', () => {
       </AppProvider>,
     );
 
-    const checkbox = screen.getByLabelText(
-      /select strategy one for export/i,
-    );
-    await user.click(checkbox);
+    const addButton = screen.getByRole('button', {
+      name: /add strategy one to export/i,
+    });
+    await user.click(addButton);
     expect(screen.getByText('1 selected')).toBeInTheDocument();
 
-    await user.click(checkbox);
+    const removeButton = screen.getByRole('button', {
+      name: /remove strategy one from export/i,
+    });
+    await user.click(removeButton);
     expect(screen.queryByText(/\d+ selected/)).not.toBeInTheDocument();
   });
 });

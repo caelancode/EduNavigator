@@ -58,7 +58,7 @@ describe('LeftRail', () => {
 
     expect(screen.queryByLabelText('Sub-Area')).not.toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText('Support Area'), 'communication');
+    await user.selectOptions(screen.getByLabelText('Support Area'), 'communication_aac');
     expect(screen.getByLabelText('Sub-Area')).toBeInTheDocument();
   });
 
@@ -73,7 +73,7 @@ describe('LeftRail', () => {
 
     await user.selectOptions(screen.getByLabelText('Grade/Age Band'), 'prek_2');
     await user.selectOptions(screen.getByLabelText('Setting'), 'general_ed');
-    await user.selectOptions(screen.getByLabelText('Support Area'), 'literacy');
+    await user.selectOptions(screen.getByLabelText('Support Area'), 'instructional_support');
 
     expect(
       screen.getByRole('button', { name: /update guidance/i }),

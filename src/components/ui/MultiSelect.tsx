@@ -1,6 +1,7 @@
 interface MultiSelectOption {
   value: string;
   label: string;
+  description?: string;
 }
 
 interface MultiSelectProps {
@@ -31,15 +32,20 @@ export function MultiSelect({
         {options.map((opt) => (
           <label
             key={opt.value}
-            className="flex items-center gap-2 cursor-pointer text-sm text-neutral-700"
+            className="flex min-h-[44px] items-start gap-2 cursor-pointer py-1.5 text-sm text-neutral-700"
           >
             <input
               type="checkbox"
               checked={selectedValues.includes(opt.value)}
               onChange={() => handleToggle(opt.value)}
-              className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
             />
-            {opt.label}
+            <span>
+              {opt.label}
+              {opt.description && (
+                <span className="block text-xs text-neutral-500">{opt.description}</span>
+              )}
+            </span>
           </label>
         ))}
       </div>

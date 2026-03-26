@@ -51,18 +51,18 @@ describe('leftRailReducer', () => {
   it('sets tech context', () => {
     const state = leftRailReducer(initialLeftRailState, {
       type: 'SET_TECH_CONTEXT',
-      payload: 'assistive_tech',
+      payload: 'specialized_tech',
     });
-    expect(state.techContext).toBe('assistive_tech');
+    expect(state.techContext).toBe('specialized_tech');
   });
 
   it('sets support area and clears sub area', () => {
     const initial = { ...initialLeftRailState, subArea: 'old_sub' };
     const state = leftRailReducer(initial, {
       type: 'SET_SUPPORT_AREA',
-      payload: 'literacy',
+      payload: 'instructional_support',
     });
-    expect(state.supportArea).toBe('literacy');
+    expect(state.supportArea).toBe('instructional_support');
     expect(state.subArea).toBeNull();
   });
 
@@ -77,9 +77,9 @@ describe('leftRailReducer', () => {
   it('sets output preference', () => {
     const state = leftRailReducer(initialLeftRailState, {
       type: 'SET_OUTPUT_PREFERENCE',
-      payload: 'visual_supports',
+      payload: 'step_by_step',
     });
-    expect(state.outputPreference).toBe('visual_supports');
+    expect(state.outputPreference).toBe('step_by_step');
   });
 
   it('sets role perspective', () => {
@@ -95,7 +95,7 @@ describe('leftRailReducer', () => {
       ...initialLeftRailState,
       gradeBand: '3_5' as const,
       setting: 'home' as const,
-      supportArea: 'math',
+      supportArea: 'behavior_support',
     };
     const state = leftRailReducer(modified, { type: 'RESET' });
     expect(state).toEqual(initialLeftRailState);

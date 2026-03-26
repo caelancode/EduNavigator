@@ -5,9 +5,10 @@ import type { TechContext } from '../../types/left-rail';
 
 export function TechnologyContext() {
   const { state, dispatch } = useLeftRail();
+  const selectedLabel = TECH_CONTEXT_OPTIONS.find((o) => o.value === state.techContext)?.label;
 
   return (
-    <CollapsibleSection title="Technology Context">
+    <CollapsibleSection title="Technology Context" badge={selectedLabel}>
       <RadioGroup
         legend="Available Technology"
         name="tech-context"

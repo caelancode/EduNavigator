@@ -11,6 +11,7 @@ import type {
 export interface SelectOption<T extends string = string> {
   value: T;
   label: string;
+  description?: string;
 }
 
 export const GRADE_BAND_OPTIONS: SelectOption<GradeBand>[] = [
@@ -46,16 +47,15 @@ export const TIME_RANGE_OPTIONS: SelectOption<TimeRange>[] = [
 
 export const TECH_CONTEXT_OPTIONS: SelectOption<TechContext>[] = [
   { value: 'no_tech', label: 'No Technology' },
-  { value: 'basic_devices', label: 'Basic Devices' },
-  { value: 'full_tech', label: 'Full Technology' },
-  { value: 'assistive_tech', label: 'Assistive Technology' },
+  { value: 'minimal_tech', label: 'Minimal Technology' },
+  { value: 'specialized_tech', label: 'Specialized Technology' },
 ];
 
 export const OUTPUT_PREFERENCE_OPTIONS: SelectOption<OutputPreference>[] = [
-  { value: 'visual_supports', label: 'Visual Supports' },
-  { value: 'lesson_plan_snippet', label: 'Lesson Plan Snippet' },
-  { value: 'data_collection_idea', label: 'Data Collection Idea' },
-  { value: 'parent_communication', label: 'Parent Communication' },
+  { value: 'step_by_step', label: 'Step-by-Step' },
+  { value: 'scripts', label: 'Scripts' },
+  { value: 'quick_ideas', label: 'Quick Ideas' },
+  { value: 'rationale', label: 'Rationale' },
 ];
 
 export const ROLE_PERSPECTIVE_OPTIONS: SelectOption<RolePerspective>[] = [
@@ -67,76 +67,59 @@ export const ROLE_PERSPECTIVE_OPTIONS: SelectOption<RolePerspective>[] = [
 ];
 
 export const SUPPORT_AREA_OPTIONS: SelectOption[] = [
-  { value: 'communication', label: 'Communication' },
-  { value: 'literacy', label: 'Literacy' },
-  { value: 'math', label: 'Mathematics' },
-  { value: 'behavior', label: 'Behavior' },
-  { value: 'social_skills', label: 'Social Skills' },
-  { value: 'daily_living', label: 'Daily Living Skills' },
-  { value: 'transition', label: 'Transition' },
-  { value: 'sensory', label: 'Sensory' },
-  { value: 'motor', label: 'Motor Skills' },
+  { value: 'instructional_support', label: 'Instructional Support' },
+  { value: 'behavior_support', label: 'Behavior Support' },
+  { value: 'communication_aac', label: 'Communication & AAC' },
+  { value: 'functional_life_skills', label: 'Functional & Life Skills' },
+  { value: 'collaboration_planning', label: 'Collaboration & Planning' },
 ];
 
 export const SUB_AREA_OPTIONS: Record<string, SelectOption[]> = {
-  communication: [
+  instructional_support: [
+    { value: 'literacy', label: 'Literacy' },
+    { value: 'math', label: 'Mathematics' },
+    { value: 'comprehension', label: 'Comprehension' },
+    { value: 'writing', label: 'Writing' },
+    { value: 'sensory_supports', label: 'Sensory Supports' },
+    { value: 'motor_supports', label: 'Motor Supports' },
+  ],
+  behavior_support: [
+    { value: 'positive_supports', label: 'Positive Behavior Supports' },
+    { value: 'self_regulation', label: 'Self-Regulation' },
+    { value: 'replacement_behaviors', label: 'Replacement Behaviors' },
+    { value: 'social_skills', label: 'Social Skills' },
+    { value: 'peer_interaction', label: 'Peer Interaction' },
+  ],
+  communication_aac: [
     { value: 'expressive', label: 'Expressive Communication' },
     { value: 'receptive', label: 'Receptive Communication' },
     { value: 'aac', label: 'AAC (Augmentative & Alternative)' },
     { value: 'pragmatic', label: 'Pragmatic/Social Communication' },
   ],
-  literacy: [
-    { value: 'phonics', label: 'Phonics & Decoding' },
-    { value: 'sight_words', label: 'Sight Words' },
-    { value: 'comprehension', label: 'Comprehension' },
-    { value: 'writing', label: 'Writing' },
-  ],
-  math: [
-    { value: 'number_sense', label: 'Number Sense' },
-    { value: 'operations', label: 'Operations' },
-    { value: 'measurement', label: 'Measurement' },
-    { value: 'functional_math', label: 'Functional Math' },
-  ],
-  behavior: [
-    { value: 'positive_supports', label: 'Positive Behavior Supports' },
-    { value: 'self_regulation', label: 'Self-Regulation' },
-    { value: 'replacement_behaviors', label: 'Replacement Behaviors' },
-  ],
-  social_skills: [
-    { value: 'peer_interaction', label: 'Peer Interaction' },
-    { value: 'turn_taking', label: 'Turn-Taking' },
-    { value: 'cooperative_learning', label: 'Cooperative Learning' },
-  ],
-  daily_living: [
+  functional_life_skills: [
     { value: 'self_care', label: 'Self-Care' },
     { value: 'meal_prep', label: 'Meal Preparation' },
     { value: 'money_management', label: 'Money Management' },
     { value: 'community_navigation', label: 'Community Navigation' },
-  ],
-  transition: [
     { value: 'vocational', label: 'Vocational Skills' },
-    { value: 'self_determination', label: 'Self-Determination' },
     { value: 'independent_living', label: 'Independent Living' },
   ],
-  sensory: [
-    { value: 'sensory_diet', label: 'Sensory Diet' },
-    { value: 'sensory_breaks', label: 'Sensory Breaks' },
-    { value: 'environment_modifications', label: 'Environment Modifications' },
-  ],
-  motor: [
-    { value: 'fine_motor', label: 'Fine Motor' },
-    { value: 'gross_motor', label: 'Gross Motor' },
-    { value: 'adaptive_equipment', label: 'Adaptive Equipment' },
+  collaboration_planning: [
+    { value: 'team_coordination', label: 'Team Coordination' },
+    { value: 'iep_implementation', label: 'IEP Implementation' },
+    { value: 'family_engagement', label: 'Family Engagement' },
+    { value: 'transition_planning', label: 'Transition Planning' },
+    { value: 'self_determination', label: 'Self-Determination' },
   ],
 };
 
 export const COMMUNICATION_LEVEL_OPTIONS: SelectOption[] = [
-  { value: 'pre_symbolic', label: 'Pre-Symbolic' },
-  { value: 'emerging_symbolic', label: 'Emerging Symbolic' },
-  { value: 'symbolic', label: 'Symbolic' },
+  { value: 'pre_symbolic', label: 'Pre-Symbolic', description: 'Communicates through body movements, facial expressions, or cries' },
+  { value: 'emerging_symbolic', label: 'Emerging Symbolic', description: 'Beginning to use gestures, pictures, or objects to communicate' },
+  { value: 'symbolic', label: 'Symbolic', description: 'Uses symbols, signs, or words with consistent meaning' },
   { value: 'verbal_limited', label: 'Verbal (Limited)' },
   { value: 'verbal_fluent', label: 'Verbal (Fluent)' },
-  { value: 'aac_user', label: 'AAC User' },
+  { value: 'aac_user', label: 'AAC User', description: 'Uses augmentative/alternative communication devices or systems' },
 ];
 
 export const MOBILITY_LEVEL_OPTIONS: SelectOption[] = [
@@ -155,7 +138,7 @@ export const SENSORY_OPTIONS: SelectOption[] = [
 ];
 
 export const BEHAVIORAL_OPTIONS: SelectOption[] = [
-  { value: 'elopement', label: 'Elopement Risk' },
+  { value: 'elopement', label: 'Elopement Risk', description: 'May leave designated areas or attempt to run away' },
   { value: 'self_injury', label: 'Self-Injurious Behavior' },
   { value: 'aggression', label: 'Aggression' },
   { value: 'non_compliance', label: 'Non-Compliance' },

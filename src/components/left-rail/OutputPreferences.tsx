@@ -5,9 +5,10 @@ import type { OutputPreference } from '../../types/left-rail';
 
 export function OutputPreferences() {
   const { state, dispatch } = useLeftRail();
+  const selectedLabel = OUTPUT_PREFERENCE_OPTIONS.find((o) => o.value === state.outputPreference)?.label;
 
   return (
-    <CollapsibleSection title="Output Preferences">
+    <CollapsibleSection title="Output Preferences" badge={selectedLabel}>
       <RadioGroup
         legend="Preferred Output"
         name="output-preference"

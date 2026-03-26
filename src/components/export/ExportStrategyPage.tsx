@@ -10,18 +10,18 @@ export function ExportStrategyPage({
   index,
 }: ExportStrategyPageProps) {
   return (
-    <div className="export-strategy-page break-before-page pt-6">
-      <div className="mb-4 flex items-start gap-3">
-        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-neutral-200 text-sm font-semibold text-neutral-700">
+    <div className="mb-10 break-inside-avoid border-b border-neutral-200 pb-10 font-[system-ui] last:mb-0 last:border-0 last:pb-0">
+      <div className="mb-5 flex items-center gap-4">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-primary-700 text-sm font-bold text-primary-700">
           {index + 1}
-        </span>
-        <h3 className="text-lg font-semibold text-neutral-900">
+        </div>
+        <h3 className="text-lg font-bold text-neutral-800">
           {strategy.title}
         </h3>
       </div>
 
-      <div className="mb-4">
-        <h4 className="mb-1 text-sm font-semibold text-neutral-700">
+      <div className="mb-5 pl-12">
+        <h4 className="mb-1.5 text-sm font-semibold text-primary-700">
           Why This Fits
         </h4>
         <p className="text-sm leading-relaxed text-neutral-700">
@@ -29,22 +29,24 @@ export function ExportStrategyPage({
         </p>
       </div>
 
-      <div className="mb-4">
-        <h4 className="mb-1 text-sm font-semibold text-neutral-700">
+      <div className="mb-5 pl-12">
+        <h4 className="mb-1.5 text-sm font-semibold text-neutral-800">
           How to Implement
         </h4>
-        <div className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-700">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-700">
           {strategy.how_to}
-        </div>
+        </p>
       </div>
 
-      <div className="rounded border border-neutral-200 bg-neutral-50 p-3">
-        <blockquote className="mb-2 border-l-2 border-neutral-300 pl-3 text-sm italic text-neutral-600">
-          {strategy.supporting_excerpt}
-        </blockquote>
-        <cite className="text-xs not-italic text-neutral-500">
+      <div className="pl-12">
+        <div className="mb-3 rounded-r-md border-l-[3px] border-primary-300 bg-neutral-50 p-4">
+          <blockquote className="text-sm italic leading-relaxed text-neutral-600">
+            &ldquo;{strategy.supporting_excerpt}&rdquo;
+          </blockquote>
+        </div>
+        <p className="text-xs leading-normal text-neutral-600">
           {strategy.source_ref}
-        </cite>
+        </p>
       </div>
     </div>
   );

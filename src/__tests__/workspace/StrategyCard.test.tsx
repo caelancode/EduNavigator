@@ -31,7 +31,7 @@ describe('StrategyCard', () => {
       screen.getByText(/Create a visual schedule/),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('Visual supports increase on-task behavior.'),
+      screen.getByText(/Visual supports increase on-task behavior/),
     ).toBeInTheDocument();
     expect(
       screen.getByText('Browder et al. (2014). Evidence-based practices.'),
@@ -84,7 +84,7 @@ describe('StrategyCard', () => {
     expect(screen.getByRole('article')).toHaveAttribute('data-selected', 'true');
   });
 
-  it('calls onToggleSelect when checkbox is clicked', async () => {
+  it('calls onToggleSelect when bookmark button is clicked', async () => {
     const user = userEvent.setup();
     const handleToggle = vi.fn();
 
@@ -98,12 +98,38 @@ describe('StrategyCard', () => {
     );
 
     await user.click(
-      screen.getByLabelText(/select visual schedule supports for export/i),
+      screen.getByRole('button', { name: /add visual schedule supports to export/i }),
     );
     expect(handleToggle).toHaveBeenCalledWith(1);
   });
 
-  it('checkbox is keyboard accessible', async () => {
+  it('bookmark button label changes when selected', () => {
+    const { rerender } = render(
+      <StrategyCard
+        strategy={testStrategy}
+        index={0}
+        isSelected={false}
+        onToggleSelect={() => {}}
+      />,
+    );
+    expect(
+      screen.getByRole('button', { name: /add visual schedule supports to export/i }),
+    ).toHaveAttribute('aria-pressed', 'false');
+
+    rerender(
+      <StrategyCard
+        strategy={testStrategy}
+        index={0}
+        isSelected={true}
+        onToggleSelect={() => {}}
+      />,
+    );
+    expect(
+      screen.getByRole('button', { name: /remove visual schedule supports from export/i }),
+    ).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('bookmark button is keyboard accessible', async () => {
     const user = userEvent.setup();
     const handleToggle = vi.fn();
 
@@ -116,11 +142,11 @@ describe('StrategyCard', () => {
       />,
     );
 
-    const checkbox = screen.getByLabelText(
-      /select visual schedule supports for export/i,
-    );
-    checkbox.focus();
-    await user.keyboard(' ');
+    const button = screen.getByRole('button', {
+      name: /add visual schedule supports to export/i,
+    });
+    button.focus();
+    await user.keyboard('{Enter}');
     expect(handleToggle).toHaveBeenCalledWith(0);
   });
 });

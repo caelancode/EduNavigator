@@ -15,6 +15,7 @@ export function GroupingSelect() {
       onChange={(value) =>
         dispatch({ type: 'SET_GROUPING', payload: value as Grouping })
       }
+      variant="pills"
     />
   );
 }
