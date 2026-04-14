@@ -138,7 +138,7 @@ export function ExportModal({ isOpen, strategies, onClose }: ExportModalProps) {
           </div>
 
           {/* Strategy list — scrollable when content overflows */}
-          <ul className="custom-scrollbar flex flex-col gap-2 overflow-y-auto" role="list">
+          <ul className="custom-scrollbar flex flex-col gap-2 overflow-y-auto">
             {strategies.map((strategy, index) => {
               const checked = checkedIndices.has(index);
               const checkboxId = `export-strategy-${index}`;
@@ -146,6 +146,7 @@ export function ExportModal({ isOpen, strategies, onClose }: ExportModalProps) {
                 <li key={`${strategy.title}-${index}`}>
                   <label
                     htmlFor={checkboxId}
+                    aria-label={strategy.title}
                     className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${checked ? 'border-primary-200 bg-primary-50' : 'border-neutral-100 bg-neutral-50 hover:bg-neutral-100'}`}
                   >
                     <input

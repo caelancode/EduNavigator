@@ -21,7 +21,9 @@ export function MessageList() {
   // Auto-scroll to bottom on new messages (unless user scrolled up)
   useEffect(() => {
     if (!isUserScrolled) {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      if (typeof bottomRef.current?.scrollIntoView === 'function') {
+        bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   }, [chatState.messages, chatState.isLoading, isUserScrolled]);
 

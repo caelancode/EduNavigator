@@ -142,7 +142,6 @@ export function ContextSummaryBar() {
       <div
         role="status"
         aria-label="Current teaching context"
-        tabIndex={hasContext ? 0 : undefined}
         className={`flex cursor-default items-center gap-2 border-b px-4 py-1.5 text-xs outline-none transition-colors duration-500 ${
           hasUpdates
             ? 'border-primary-200 bg-primary-50'
