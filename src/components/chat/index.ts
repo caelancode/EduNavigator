@@ -6,4 +6,5 @@ export { TypingIndicator } from './TypingIndicator';
 export { CitationBadge } from './CitationBadge';
 export { ReadyForStrategiesButton } from './ReadyForStrategiesButton';
 export { WelcomeMessage } from './WelcomeMessage';
+export { SuggestionChips } from './SuggestionChips';
 

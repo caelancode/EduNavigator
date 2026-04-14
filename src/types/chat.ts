@@ -3,7 +3,15 @@ import type { NextQuestion } from './context-update';
 
 export type MessageRole = 'user' | 'assistant' | 'system';
 
-export type IntakeStage = 'landing' | 'sub_area' | 'grade_band' | 'confirm' | 'complete';
+export interface SuggestionChip {
+  id: string;
+  /** Display label shown on the chip button */
+  label: string;
+  /** The message text sent to the chat when this chip is clicked */
+  message: string;
+}
+
+export type IntakeStage = 'landing' | 'sub_area' | 'other_elaboration' | 'grade_band' | 'confirm' | 'complete';
 
 export interface ChatMessage {
   id: string;
@@ -21,6 +29,8 @@ export interface ChatMessage {
   nextQuestion?: NextQuestion;
   /** Prominent action button (e.g., "Find Strategies") */
   actionButton?: { label: string };
+  /** Action chips shown after strategy-bearing responses to guide the next step */
+  suggestionChips?: SuggestionChip[];
 }
 
 export interface ChatState {

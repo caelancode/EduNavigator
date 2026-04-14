@@ -43,3 +43,10 @@ export interface StrategyCardProps {
   isExpanded: boolean;
   onToggleExpand: (index: number) => void;
 }
+
+export interface StrategyGroup {
+  /** 1-indexed turn number, shown in the workspace divider */
+  turnNumber: number;
+  strategies: Strategy[];
+  context?: import('./left-rail').LeftRailState;
+}

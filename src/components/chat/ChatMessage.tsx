@@ -1,8 +1,10 @@
 import { cloneElement, type ReactNode, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { ChatMessage as ChatMessageType } from '../../types/chat';
+import type { CitationLink } from '../../types/cross-reference';
 import { CitationBadge } from './CitationBadge';
 import { QuestionChips } from './QuestionChips';
+import { SuggestionChips } from './SuggestionChips';
 import { useCrossReference } from '../../contexts/CrossReferenceContext';
 import { useSendMessage } from '../../hooks/useSendMessage';
 import { useGuidedIntake } from '../../hooks/useGuidedIntake';
@@ -67,6 +69,7 @@ function interpolateCitations(
   children: ReactNode,
   messageId: string,
   isActive: boolean,
+  citations: CitationLink[] | undefined,
 ): ReactNode {
   if (typeof children === 'string') {
     const parts = children.split(PLACEHOLDER_PATTERN);
@@ -76,10 +79,16 @@ function interpolateCitations(
       // Odd indices are the captured group (citation number)
       if (i % 2 === 1) {
         const num = parseInt(part, 10);
+        // Look up the pre-computed global strategyIndex from the message's citation
+        // data so the color/scroll target matches the correct workspace card even
+        // when an offset was applied (i.e. strategies from a previous turn exist).
+        const link = citations?.find((c) => c.citationNumber === num);
+        const strategyIndex = link ? link.strategyIndex : num - 1;
         return (
           <CitationBadge
             key={`cite-${messageId}-${num}-${i}`}
             citationNumber={num}
+            strategyIndex={strategyIndex}
             messageId={messageId}
             isActive={isActive}
           />
@@ -91,7 +100,7 @@ function interpolateCitations(
 
   if (Array.isArray(children)) {
     return children.map((child, i) => {
-      const result = interpolateCitations(child, messageId, isActive);
+      const result = interpolateCitations(child, messageId, isActive, citations);
       if (typeof result === 'string') return result;
       if (Array.isArray(result)) {
         return result.map((r, j) => {
@@ -110,6 +119,7 @@ function interpolateCitations(
         element.props.children,
         messageId,
         isActive,
+        citations,
       );
       // Only clone if children actually changed
       if (newChildren !== element.props.children) {
@@ -149,7 +159,7 @@ export function ChatMessage({ message, isAnswered = false }: ChatMessageProps) {
     if (!hasCitations) return undefined;
 
     const wrapWithCitations = (children: ReactNode) =>
-      interpolateCitations(children, message.id, isCitationActive ?? false);
+      interpolateCitations(children, message.id, isCitationActive ?? false, message.citations);
 
     return {
       p: ({ children }: { children?: ReactNode }) => (
@@ -165,7 +175,7 @@ export function ChatMessage({ message, isAnswered = false }: ChatMessageProps) {
         <em>{wrapWithCitations(children)}</em>
       ),
     };
-  }, [hasCitations, message.id, isCitationActive]);
+  }, [hasCitations, message.id, isCitationActive, message.citations]);
 
   return (
     <div
@@ -235,6 +245,17 @@ export function ChatMessage({ message, isAnswered = false }: ChatMessageProps) {
             />
           </div>
         </>
+      )}
+      {/* Render suggestion chips after strategy-bearing responses */}
+      {!isUser && message.suggestionChips && message.suggestionChips.length > 0 && (
+        <div className="ml-12 mt-1">
+          <SuggestionChips
+            chips={message.suggestionChips}
+            isAnswered={isAnswered}
+            isLoading={isLoading}
+            onSelect={(msg) => send(msg)}
+          />
+        </div>
       )}
       {/* Render action button (e.g., "Find Strategies") */}
       {!isUser && message.actionButton && !isAnswered && !isLoading && (

@@ -261,12 +261,24 @@ Rules:
 
 ---
 
-STRATEGY COUNT PER TURN:
-- First response \u2192 exactly 1 strategy
-- Follow-up about a previous strategy \u2192 1
-- "Try another" / "what else" \u2192 1 (genuinely different mechanism)
-- New specific question with clear context \u2192 2\u20133
-- Off-topic redirect / crisis response \u2192 [] (empty array)
+STRATEGY COUNT:
+Return as many strategies as you can genuinely differentiate, up to 3.
+
+Floor rule: Never return more than 1 strategy if supportArea or subArea is unknown
+(from fields or clearly inferred from conversation). Without a clear problem domain,
+1 targeted strategy is better than 3 generic ones.
+
+Above the floor, use your judgment:
+- If context gives you enough to generate 3 strategies with meaningfully different
+  mechanisms, return 3.
+- If you can only make 2 genuinely distinct recommendations given what you know, return 2.
+- Never pad. A weak third strategy is worse than two strong ones. Do not return a third
+  card that is a minor variation of an existing one.
+
+Fixed overrides:
+- "Try another" / "what else" \u2192 always 1 (a genuinely different mechanism)
+- Active student crisis \u2192 0 (provide de-escalation steps in prose instead)
+- Off-topic redirect \u2192 0
 
 ---
 
@@ -279,6 +291,18 @@ Part 3 (conditional): The delimiter ===CONTEXT_UPDATE=== followed by a context u
 
 Parts 1 and 2 are ALWAYS required, even when the strategy array is empty [].
 
+NO EXCEPTIONS — this applies to every turn without exception, including when you are:
+- Summarizing the context you have ("Here's what I'm working with...")
+- Answering questions about your reasoning or sources
+- Asking a clarifying question or redirecting the conversation
+- Handling off-topic input
+
+If you have no new strategies to offer on that turn, return the empty array:
+===STRATEGIES_JSON===
+[]
+
+Never omit the delimiter. A response with no ===STRATEGIES_JSON=== is a broken response.
+
 Part 3 — ===CONTEXT_UPDATE=== — include ONLY when you have extracted or confidently
 inferred at least one structured field from the conversation, OR when you want to ask a
 follow-up question with clickable options. When in doubt, omit it entirely.
@@ -290,15 +314,32 @@ Context update JSON shape:
     "field": "gradeBand",
     "text": "What grade or age group is this student?",
     "options": ["prek_2", "3_5", "6_8", "9_12", "18_22"]
-  }
+  },
+  "suggestedActions": [
+    { "label": "Yes" },
+    { "label": "No, it happens all day" }
+  ]
 }
 
 Rules for ===CONTEXT_UPDATE===:
 - "updates" contains ONLY fields you would bet on. Ambiguous input → omit the field.
 - "nextQuestion" is optional — include at most one per turn.
 - "nextQuestion.options" must be valid enum values (see EXTRACTABLE FIELDS below).
-- An empty "updates": {} with no "nextQuestion" is wasteful — omit the section entirely.
+- An empty "updates": {} with no "nextQuestion" and no "suggestedActions" is wasteful — omit the section entirely.
 - The frontend renders nextQuestion options as clickable buttons for the educator.
+
+"suggestedActions" — optional array of 1–3 chips the educator can click as a shortcut.
+The label is exactly what gets sent as their message, so write it as they would say it.
+Include ONLY when chips genuinely help. Rules:
+- After a yes/no question in your prose: provide ["Yes", "No"] or natural variants
+- After delivering strategies with no follow-up question: offer clear next moves like
+  "Try a different approach" or "How would I adapt this for 1:1?"
+- On early turns when context is sparse: offer an entry point like "Generate strategies
+  with what I have"
+- Omit when the conversation is flowing naturally — chips are scaffolding, not decoration
+- Never include "suggestedActions" AND "nextQuestion" in the same response
+- Labels must be ≤ 60 chars, plain language, written as the educator would say them
+- Max 3 items. 2 is often better than 3.
 
 ---
 

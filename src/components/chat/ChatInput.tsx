@@ -32,8 +32,11 @@ export function ChatInput() {
     setJustSent(true);
     setTimeout(() => setJustSent(false), 1000);
 
-    // During guided intake, typing always fires the API with whatever context exists
-    if (intake.stage !== 'complete') {
+    // During guided intake, typing always fires the API with whatever context exists —
+    // except during other_elaboration, which is handled as a local intake step.
+    if (intake.stage === 'other_elaboration') {
+      intake.elaborateOther(trimmed);
+    } else if (intake.stage !== 'complete') {
       intake.skipToApi(trimmed);
     } else {
       await send(trimmed);
@@ -53,7 +56,7 @@ export function ChatInput() {
 
   return (
     <div className="border-t border-neutral-200/60 bg-white px-3 pt-3 pb-2 sm:px-4">
-      <div className={`flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 shadow-card transition-[border-color,box-shadow] duration-300 focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 sm:gap-3 sm:px-4 ${justSent ? 'animate-border-flash' : 'border-neutral-200'}`}>
+<div className={`flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 shadow-card transition-[border-color,box-shadow] duration-300 focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 sm:gap-3 sm:px-4 ${justSent ? 'animate-border-flash' : 'border-neutral-200'}`}>
         <textarea
           ref={textareaRef}
           value={input}

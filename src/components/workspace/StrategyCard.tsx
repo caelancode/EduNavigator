@@ -99,10 +99,9 @@ export const StrategyCard = memo(function StrategyCard({
                         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700" aria-hidden="true">1</span>
                         <h5 className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Prep</h5>
                       </div>
-                      <ul className="flex flex-col gap-1.5 pl-2">
+                      <ul className="list-disc space-y-1.5 pl-4 marker:text-neutral-400">
                         {strategy.steps.prep.map((step, i) => (
-                          <li key={i} className="flex gap-2 text-sm leading-relaxed text-neutral-700">
-                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-400" aria-hidden="true" />
+                          <li key={i} className="text-sm leading-relaxed text-neutral-700">
                             <ReactMarkdown className="prose prose-sm max-w-none prose-p:my-0">{step}</ReactMarkdown>
                           </li>
                         ))}
@@ -116,10 +115,9 @@ export const StrategyCard = memo(function StrategyCard({
                         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700" aria-hidden="true">2</span>
                         <h5 className="text-xs font-semibold uppercase tracking-wide text-neutral-600">During</h5>
                       </div>
-                      <ul className="flex flex-col gap-1.5 pl-2">
+                      <ul className="list-disc space-y-1.5 pl-4 marker:text-neutral-400">
                         {strategy.steps.during.map((step, i) => (
-                          <li key={i} className="flex gap-2 text-sm leading-relaxed text-neutral-700">
-                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-400" aria-hidden="true" />
+                          <li key={i} className="text-sm leading-relaxed text-neutral-700">
                             <ReactMarkdown className="prose prose-sm max-w-none prose-p:my-0">{step}</ReactMarkdown>
                           </li>
                         ))}
@@ -133,10 +131,9 @@ export const StrategyCard = memo(function StrategyCard({
                         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700" aria-hidden="true">3</span>
                         <h5 className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Follow-Up</h5>
                       </div>
-                      <ul className="flex flex-col gap-1.5 pl-2">
+                      <ul className="list-disc space-y-1.5 pl-4 marker:text-neutral-400">
                         {strategy.steps.follow_up.map((step, i) => (
-                          <li key={i} className="flex gap-2 text-sm leading-relaxed text-neutral-700">
-                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-400" aria-hidden="true" />
+                          <li key={i} className="text-sm leading-relaxed text-neutral-700">
                             <ReactMarkdown className="prose prose-sm max-w-none prose-p:my-0">{step}</ReactMarkdown>
                           </li>
                         ))}

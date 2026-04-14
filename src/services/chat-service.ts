@@ -32,8 +32,6 @@ export async function sendMessage(
       signal: controller.signal,
     });
 
-    clearTimeout(timeoutId);
-
     if (response.status === 429) {
       return {
         ok: false,
@@ -54,11 +52,10 @@ export async function sendMessage(
       };
     }
 
+    // response.text() reads the body stream — keep the timeout active until it completes
     const raw = await response.text();
     return parseResponse(raw);
   } catch (error: unknown) {
-    clearTimeout(timeoutId);
-
     if (error instanceof DOMException && error.name === 'AbortError') {
       // Distinguish user-initiated cancel from timeout
       if (cancelSignal?.aborted) {
@@ -80,5 +77,7 @@ export async function sendMessage(
         message: 'A network error occurred. Please check your connection.',
       },
     };
+  } finally {
+    clearTimeout(timeoutId);
   }
 }

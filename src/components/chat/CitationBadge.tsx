@@ -6,6 +6,8 @@ import { BADGE_COLORS, BADGE_HOVER_COLORS, BADGE_ACTIVE_COLORS } from '../../con
 
 interface CitationBadgeProps {
   citationNumber: number;
+  /** Pre-computed global index into the workspace strategies array (accounts for offset) */
+  strategyIndex: number;
   messageId: string;
   /** Whether this citation's generation matches current strategies */
   isActive: boolean;
@@ -13,13 +15,12 @@ interface CitationBadgeProps {
 
 export const CitationBadge = memo(function CitationBadge({
   citationNumber,
+  strategyIndex,
   messageId,
   isActive,
 }: CitationBadgeProps) {
   const { setActiveCitation, activeCitation, activeCitationInteraction } = useCrossReference();
   const { strategies } = useWorkspace();
-
-  const strategyIndex = citationNumber - 1;
   const badgeColor = BADGE_COLORS[strategyIndex % BADGE_COLORS.length];
   const badgeHover = BADGE_HOVER_COLORS[strategyIndex % BADGE_HOVER_COLORS.length];
   const badgeActive = BADGE_ACTIVE_COLORS[strategyIndex % BADGE_ACTIVE_COLORS.length];

@@ -106,6 +106,18 @@ export function useGuidedIntake() {
         payload: makeLocalUserMessage(label),
       });
 
+      // If user selected "Other", ask for elaboration before proceeding.
+      if (value === 'other') {
+        chatDispatch({
+          type: 'ADD_MESSAGE',
+          payload: makeLocalAssistantMessage(
+            "Got it! Can you describe what you're working on? For example, are you thinking about something like staff coordination, the IEP process, working with families, or something else entirely?",
+          ),
+        });
+        chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'other_elaboration' });
+        return;
+      }
+
       if (leftRailState.gradeBand) {
         // Grade band already known from the sidebar — skip to confirm.
         const confirmContent = buildConfirmContent(
@@ -143,6 +155,45 @@ export function useGuidedIntake() {
       leftRailState.gradeBand,
       leftRailState.supportArea,
     ],
+  );
+
+  const elaborateOther = useCallback(
+    (text: string) => {
+      chatDispatch({
+        type: 'ADD_MESSAGE',
+        payload: makeLocalUserMessage(text),
+      });
+
+      if (leftRailState.gradeBand) {
+        const confirmContent = buildConfirmContent(
+          leftRailState.supportArea,
+          leftRailState.subArea,
+          leftRailState.gradeBand,
+        );
+        chatDispatch({
+          type: 'ADD_MESSAGE',
+          payload: makeLocalAssistantMessage(confirmContent, {
+            actionButton: { label: 'Find Strategies' },
+          }),
+        });
+        chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'confirm' });
+      } else {
+        const gradeBandValues = GRADE_BAND_OPTIONS.map((o) => o.value);
+        chatDispatch({
+          type: 'ADD_MESSAGE',
+          payload: makeLocalAssistantMessage('And what grade or age band?', {
+            nextQuestion: {
+              field: 'gradeBand',
+              text: 'And what grade or age band?',
+              options: gradeBandValues,
+              isLocal: true,
+            },
+          }),
+        });
+        chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'grade_band' });
+      }
+    },
+    [chatDispatch, leftRailState.gradeBand, leftRailState.supportArea, leftRailState.subArea],
   );
 
   const selectGradeBand = useCallback(
@@ -204,6 +255,7 @@ export function useGuidedIntake() {
     stage,
     selectSupportArea,
     selectSubArea,
+    elaborateOther,
     selectGradeBand,
     confirmAndSearch,
     skipToApi,

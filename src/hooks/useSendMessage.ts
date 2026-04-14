@@ -13,7 +13,7 @@ const inFlight = { current: false };
 export function useSendMessage() {
   const { state: chatState, dispatch: chatDispatch } = useChat();
   const { state: leftRailState, dispatch: leftRailDispatch } = useLeftRail();
-  const { setStrategies, setLoading, setError } = useWorkspace();
+  const { strategies, setStrategies, setLoading, setError } = useWorkspace();
   const {
     phase,
     setPhase,
@@ -69,12 +69,16 @@ export function useSendMessage() {
           const assistantMessageId = crypto.randomUUID();
           const hasStrategies = result.strategies.length > 0;
 
-          // Extract citations from chat text if strategies are present
+          // Extract citations from chat text if strategies are present.
+          // Pass the current strategy count as an offset so [1] in a second-turn
+          // response maps to the correct global workspace index, not index 0.
+          const citationOffset = hasStrategies ? strategies.length : 0;
           const citations = hasStrategies
             ? extractCitations(
                 result.chatText,
                 result.strategies.length,
                 assistantMessageId,
+                citationOffset,
               )
             : [];
 
@@ -93,6 +97,11 @@ export function useSendMessage() {
               citations: citations.length > 0 ? citations : undefined,
               strategyGeneration: currentGeneration,
               nextQuestion: result.contextUpdate?.nextQuestion,
+              suggestionChips: result.contextUpdate?.suggestedActions?.map((a) => ({
+                id: crypto.randomUUID(),
+                label: a.label,
+                message: a.label,
+              })),
             },
           });
 
@@ -158,6 +167,7 @@ export function useSendMessage() {
       }
     },
     [
+      strategies,
       chatState.messages,
       chatState.sessionId,
       leftRailState,
