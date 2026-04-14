@@ -1,88 +1,44 @@
-import { useState, useCallback, type KeyboardEvent } from 'react';
-import { Button } from '../ui';
-import { useChat } from '../../contexts/ChatContext';
-import { useLeftRail } from '../../contexts/LeftRailContext';
-import { useWorkspace } from '../../contexts/WorkspaceContext';
-import { sendMessage } from '../../services/customgpt';
-
+import { useState, useCallback, useRef, useEffect, type KeyboardEvent } from 'react';
+import { useSendMessage } from '../../hooks/useSendMessage';
+import { useGuidedIntake } from '../../hooks/useGuidedIntake';
 const MAX_LENGTH = 2000;
 const DEBOUNCE_MS = 500;
 
 export function ChatInput() {
   const [input, setInput] = useState('');
   const [lastSentAt, setLastSentAt] = useState(0);
-  const { state: chatState, dispatch: chatDispatch } = useChat();
-  const { state: leftRailState } = useLeftRail();
-  const { setStrategies, setLoading, setError } = useWorkspace();
+  const [justSent, setJustSent] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { send, isLoading } = useSendMessage();
+  const intake = useGuidedIntake();
+
+  // Auto-resize textarea as user types
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, [input]);
 
   const handleSend = useCallback(async () => {
     const trimmed = input.trim();
-    if (!trimmed || chatState.isLoading) return;
+    if (!trimmed || isLoading) return;
 
     const now = Date.now();
     if (now - lastSentAt < DEBOUNCE_MS) return;
     setLastSentAt(now);
 
-    const userMessage = {
-      id: crypto.randomUUID(),
-      role: 'user' as const,
-      content: trimmed,
-      timestamp: now,
-    };
-
-    chatDispatch({ type: 'ADD_MESSAGE', payload: userMessage });
-    chatDispatch({ type: 'SET_LOADING', payload: true });
-    setLoading(true);
     setInput('');
+    setJustSent(true);
+    setTimeout(() => setJustSent(false), 1000);
 
-    const result = await sendMessage(
-      trimmed,
-      leftRailState,
-      [...chatState.messages, userMessage],
-      chatState.sessionId,
-    );
-
-    chatDispatch({ type: 'SET_LOADING', payload: false });
-    setLoading(false);
-
-    if (result.ok) {
-      chatDispatch({
-        type: 'ADD_MESSAGE',
-        payload: {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: result.chatText,
-          timestamp: Date.now(),
-        },
-      });
-      setStrategies(result.strategies);
+    // During guided intake, typing always fires the API with whatever context exists
+    if (intake.stage !== 'complete') {
+      intake.skipToApi(trimmed);
     } else {
-      if (result.chatText) {
-        chatDispatch({
-          type: 'ADD_MESSAGE',
-          payload: {
-            id: crypto.randomUUID(),
-            role: 'assistant',
-            content: result.chatText,
-            timestamp: Date.now(),
-          },
-        });
-      }
-      chatDispatch({ type: 'SET_ERROR', payload: result.error.message });
-      setError({ code: result.error.code, message: result.error.message });
+      await send(trimmed);
     }
-  }, [
-    input,
-    chatState.isLoading,
-    chatState.messages,
-    chatState.sessionId,
-    lastSentAt,
-    leftRailState,
-    chatDispatch,
-    setStrategies,
-    setLoading,
-    setError,
-  ]);
+  }, [input, isLoading, lastSentAt, send, intake]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -91,31 +47,48 @@ export function ChatInput() {
     }
   };
 
+  const canSend = input.trim().length > 0 && !isLoading;
+
+  const charRatio = input.length / MAX_LENGTH;
+
   return (
-    <div className="border-t border-neutral-200 bg-white p-4">
-      <div className="flex gap-2">
+    <div className="border-t border-neutral-200/60 bg-white px-3 pt-3 pb-2 sm:px-4">
+      <div className={`flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 shadow-card transition-[border-color,box-shadow] duration-300 focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 sm:gap-3 sm:px-4 ${justSent ? 'animate-border-flash' : 'border-neutral-200'}`}>
         <textarea
+          ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value.slice(0, MAX_LENGTH))}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
-          rows={2}
+          placeholder="Describe your student or ask about a strategy..."
           maxLength={MAX_LENGTH}
-          disabled={chatState.isLoading}
-          className="flex-1 resize-none rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:opacity-50"
+          rows={1}
+          className="max-h-[7.5rem] flex-1 resize-none bg-transparent py-1 text-sm leading-5 text-neutral-900 placeholder-neutral-600 focus:outline-none"
           aria-label="Chat message input"
         />
-        <Button
+        <button
+          type="button"
           onClick={handleSend}
-          disabled={!input.trim() || chatState.isLoading}
-          isLoading={chatState.isLoading}
-          size="md"
+          disabled={!canSend}
+          className="btn-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white transition-colors hover:bg-primary-700 active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:opacity-30 disabled:hover:bg-primary-600"
+          aria-label="Send message"
         >
-          Send
-        </Button>
+          {isLoading ? (
+            <svg className="h-4 w-4 animate-spin motion-reduce:animate-none" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          ) : (
+            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path d="M2.94 3.34a1 1 0 0 1 1.07-.14l13 6.5a1 1 0 0 1 0 1.79l-13 6.5A1 1 0 0 1 2.5 17V11.5l7.5-1.5-7.5-1.5V3a1 1 0 0 1 .44-.66Z" />
+            </svg>
+          )}
+        </button>
       </div>
-      <div className="mt-1 text-right text-xs text-neutral-600">
-        {input.length}/{MAX_LENGTH}
+      <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-neutral-700">
+        <span className="min-w-0">AI-generated strategies should be reviewed by qualified professionals. No personal data is collected.</span>
+        {charRatio > 0.75 && (
+          <span className={`shrink-0 tabular-nums transition-colors duration-300 ${charRatio > 0.95 ? 'font-semibold text-error-500' : charRatio > 0.8 ? 'text-warning-500' : 'text-neutral-700'}`}>{input.length}/{MAX_LENGTH}</span>
+        )}
       </div>
     </div>
   );

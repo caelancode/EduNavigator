@@ -10,52 +10,52 @@ const ERROR_DISPLAY: Record<ApiErrorCode, ErrorDisplay> = {
   network_error: {
     title: 'Connection Issue',
     message:
-      'Unable to reach the server. Please check your connection and try again.',
+      "We're having trouble connecting. Check your internet and try again.",
     showRetry: true,
   },
   timeout: {
     title: 'Request Timed Out',
     message:
-      'The request is taking longer than expected. Please try again.',
+      'This is taking longer than usual. Try again in a moment.',
     showRetry: true,
   },
   missing_delimiter: {
     title: 'Strategies Unavailable',
     message:
-      'We received a response but could not extract strategy recommendations.',
+      "I got a response but couldn't pull out the strategies. Try sending your message again.",
     showRetry: false,
   },
   invalid_json: {
     title: 'Parsing Error',
-    message: 'Could not process the strategy data. Please try again.',
+    message: 'Something went wrong reading the strategies. Try again.',
     showRetry: true,
   },
   not_array: {
     title: 'Unexpected Format',
-    message: 'The strategy data was not in the expected format.',
+    message: 'The strategies came back in an unexpected format. Try again.',
     showRetry: true,
   },
   schema_violation: {
     title: 'Partial Results',
     message:
-      'Some strategies could not be validated. Showing available results.',
+      "Some strategies didn't check out. Showing what I could verify.",
     showRetry: false,
   },
   no_valid_strategies: {
     title: 'No Matching Strategies',
     message:
-      'No strategies matched your current context. Try adjusting your selections.',
+      "I couldn't find strategies for this exact combination. Try adjusting your settings or describing your situation differently in chat.",
     showRetry: false,
   },
   empty_response: {
     title: 'No Response',
-    message: 'No response was received from the server. Please try again.',
+    message: "Didn't hear back from the server. Try again.",
     showRetry: true,
   },
   rate_limited: {
     title: 'Please Wait',
     message:
-      'Too many requests. Please wait a moment before trying again.',
+      "You're moving fast! Give it a moment and try again.",
     showRetry: true,
   },
 };

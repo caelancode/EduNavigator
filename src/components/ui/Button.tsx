@@ -11,11 +11,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-500',
+    'bg-primary-600 text-white shadow-sm hover:bg-primary-700 active:scale-95 focus-visible:ring-primary-500 btn-press disabled:bg-primary-400 disabled:text-white',
   secondary:
-    'bg-white text-neutral-700 border border-neutral-300 hover:bg-neutral-50 focus-visible:ring-primary-500',
+    'bg-white text-neutral-700 border border-neutral-200 shadow-card hover:bg-neutral-50 hover:border-neutral-300 active:scale-95 focus-visible:ring-primary-500 btn-press disabled:bg-neutral-100 disabled:text-neutral-500 disabled:border-neutral-200 disabled:shadow-none',
   ghost:
-    'bg-transparent text-neutral-600 hover:bg-neutral-100 focus-visible:ring-primary-500',
+    'bg-transparent text-neutral-600 hover:bg-neutral-100 active:scale-95 focus-visible:ring-primary-500 btn-press disabled:text-neutral-500',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -36,12 +36,12 @@ export function Button({
   return (
     <button
       disabled={disabled || isLoading}
-      className={`inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-lg font-medium transition-colors motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       {...props}
     >
       {isLoading && (
         <svg
-          className="-ml-1 mr-2 h-4 w-4 animate-spin"
+          className="-ml-1 mr-2 h-4 w-4 animate-spin motion-reduce:animate-none"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"

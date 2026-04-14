@@ -1,154 +1,209 @@
-import { useState, useCallback } from 'react';
+import { memo, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import type { StrategyCardProps } from '../../types/strategy';
+import { useCrossReference } from '../../contexts/CrossReferenceContext';
+import { BADGE_COLORS, BADGE_HEX } from '../../constants/badge-colors';
+import { CollapsibleSection } from '../ui/CollapsibleSection';
 
-export function StrategyCard({
+export const StrategyCard = memo(function StrategyCard({
   strategy,
   index,
-  isSelected,
-  onToggleSelect,
+  isExpanded,
+  onToggleExpand,
 }: StrategyCardProps) {
-  const [copied, setCopied] = useState(false);
+  const { activeCitation, strategyCardRefs } = useCrossReference();
+  const cardRef = useRef<HTMLElement>(null);
+  const isHighlighted = activeCitation?.strategyIndex === index;
 
-  const handleCopy = useCallback(async () => {
-    const text = [
-      strategy.title,
-      '',
-      'Why This Fits:',
-      strategy.why_fits,
-      '',
-      'How to Implement:',
-      strategy.how_to,
-      '',
-      `"${strategy.supporting_excerpt}"`,
-      `— ${strategy.source_ref}`,
-    ].join('\n');
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard API may not be available
+  useEffect(() => {
+    const el = cardRef.current;
+    if (el) {
+      strategyCardRefs.current.set(index, el);
     }
-  }, [strategy]);
+    return () => {
+      strategyCardRefs.current.delete(index);
+    };
+  }, [index, strategyCardRefs]);
+
+  // Short-form citation for the Source collapsible title badge
+  const shortCitation = (() => {
+    const { authors, year } = strategy.source;
+    if (authors && year) {
+      const firstAuthor = authors.split(',')[0].trim();
+      const lastName = firstAuthor.split(' ').pop() ?? firstAuthor;
+      const hasMultiple = authors.includes(',');
+      return `${lastName}${hasMultiple ? ' et al.' : ''}, ${year}`;
+    }
+    return strategy.source.formatted.slice(0, 40);
+  })();
 
   return (
     <article
-      data-selected={isSelected || undefined}
-      className="flex flex-col gap-6 rounded-2xl bg-surface-50 p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+      ref={cardRef}
+      data-stripe-visible={isHighlighted || isExpanded || undefined}
+      style={{ '--stripe-color': BADGE_HEX[index % BADGE_HEX.length] } as React.CSSProperties}
+      className={`accent-stripe flex flex-col overflow-hidden rounded-2xl border border-neutral-200/50 pl-8 pr-6 shadow-card transition-all duration-200 animate-fade-in-up motion-reduce:animate-none hover:-translate-y-1 hover:shadow-card-hover motion-reduce:transition-none motion-reduce:hover:translate-y-0 stagger-${Math.min(index + 1, 5)} ${isHighlighted || isExpanded ? 'bg-primary-50 ring-1 ring-primary-300 shadow-card-hover' : 'bg-white'}`}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-700 font-bold text-white shadow-sm">
-            {index + 1}
+      {/* ── Tier 1: Always visible ────────────────────────────────────────── */}
+      <div className="flex items-start">
+        <button
+          type="button"
+          onClick={() => onToggleExpand(index)}
+          aria-expanded={isExpanded}
+          className="flex flex-1 flex-col gap-3 py-5 text-left focus:outline-none"
+        >
+          {/* Header row: numbered badge + title */}
+          <div className="flex w-full items-start gap-4">
+            <div className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold text-white shadow-sm ${BADGE_COLORS[index % BADGE_COLORS.length]}`}>
+              {index + 1}
+            </div>
+            <h3 className="flex-1 min-w-0 font-heading text-xl font-bold leading-tight text-neutral-900">
+              {strategy.title}
+            </h3>
           </div>
-          <h3 className="text-xl font-bold leading-tight text-neutral-800">
-            {strategy.title}
-          </h3>
-        </div>
 
-        <button
-          type="button"
-          onClick={() => onToggleSelect(index)}
-          aria-label={isSelected ? `Remove ${strategy.title} from export` : `Add ${strategy.title} to export`}
-          aria-pressed={isSelected}
-          title={isSelected ? 'Remove from export' : 'Select for export'}
-          className="-mr-2 -mt-2 shrink-0 rounded-full p-2 transition-colors hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill={isSelected ? 'currentColor' : 'none'}
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`h-6 w-6 transition-colors ${isSelected ? 'text-primary-600' : 'text-neutral-400 hover:text-primary-600'}`}
-            aria-hidden="true"
-          >
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-          </svg>
+          {/* Context tagline — full card width */}
+          <p className="text-sm leading-relaxed text-neutral-500 italic">
+            {strategy.context_tagline}
+          </p>
+
+          {/* Quick Version — full card width */}
+          <div>
+            <p className="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-1">Quick Version</p>
+            <p className="text-sm leading-relaxed text-neutral-700">
+              {strategy.quick_version}
+            </p>
+          </div>
         </button>
+
       </div>
 
-      <div className="flex flex-col gap-2 rounded-xl border border-primary-100/50 bg-callout-fit p-4 shadow-sm">
-        <div className="flex items-center gap-2 font-semibold text-primary-700">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-5 w-5 text-primary-600"
-            aria-hidden="true"
-          >
-            <path d="M9 18h6" />
-            <path d="M10 22h4" />
-            <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" />
-          </svg>
-          <h4 className="text-xs uppercase tracking-wide">Why This Fits</h4>
+      {/* ── Tier 2 & 3: Expandable content ───────────────────────────────── */}
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none"
+        style={{ gridTemplateRows: isExpanded ? '1fr' : '0fr' }}
+      >
+        <div className="overflow-hidden">
+          <div className="flex flex-col gap-4 pb-6">
+            {/* ── Tier 2: Step-by-step ──────────────────────────────────── */}
+            <div className="flex flex-col gap-4">
+              <h4 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
+                Step-by-Step
+              </h4>
+
+              {strategy.steps ? (
+                <div className="flex flex-col gap-4">
+                  {strategy.steps.prep.length > 0 && (
+                    <div>
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700" aria-hidden="true">1</span>
+                        <h5 className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Prep</h5>
+                      </div>
+                      <ul className="flex flex-col gap-1.5 pl-2">
+                        {strategy.steps.prep.map((step, i) => (
+                          <li key={i} className="flex gap-2 text-sm leading-relaxed text-neutral-700">
+                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-400" aria-hidden="true" />
+                            <ReactMarkdown className="prose prose-sm max-w-none prose-p:my-0">{step}</ReactMarkdown>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {strategy.steps.during.length > 0 && (
+                    <div>
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700" aria-hidden="true">2</span>
+                        <h5 className="text-xs font-semibold uppercase tracking-wide text-neutral-600">During</h5>
+                      </div>
+                      <ul className="flex flex-col gap-1.5 pl-2">
+                        {strategy.steps.during.map((step, i) => (
+                          <li key={i} className="flex gap-2 text-sm leading-relaxed text-neutral-700">
+                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-400" aria-hidden="true" />
+                            <ReactMarkdown className="prose prose-sm max-w-none prose-p:my-0">{step}</ReactMarkdown>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {strategy.steps.follow_up.length > 0 && (
+                    <div>
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700" aria-hidden="true">3</span>
+                        <h5 className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Follow-Up</h5>
+                      </div>
+                      <ul className="flex flex-col gap-1.5 pl-2">
+                        {strategy.steps.follow_up.map((step, i) => (
+                          <li key={i} className="flex gap-2 text-sm leading-relaxed text-neutral-700">
+                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-400" aria-hidden="true" />
+                            <ReactMarkdown className="prose prose-sm max-w-none prose-p:my-0">{step}</ReactMarkdown>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ) : strategy.how_to ? (
+                // Legacy fallback: flat markdown block
+                <div className="prose prose-sm max-w-none leading-relaxed text-neutral-700 prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5">
+                  <ReactMarkdown>{strategy.how_to}</ReactMarkdown>
+                </div>
+              ) : null}
+            </div>
+
+            {/* ── Tier 3: Why This Works + Source (collapsed by default) ── */}
+            <div className="flex flex-col rounded-xl border border-neutral-200 bg-neutral-50 px-4">
+              <CollapsibleSection title="Why This Works" defaultOpen={false}>
+                <div className="prose prose-sm max-w-none leading-relaxed text-neutral-600 prose-p:my-1.5">
+                  <ReactMarkdown>{strategy.why_fits}</ReactMarkdown>
+                </div>
+              </CollapsibleSection>
+
+              <CollapsibleSection
+                title="Source"
+                defaultOpen={false}
+                badge={shortCitation}
+              >
+                <div className="flex flex-col gap-3">
+                  <blockquote className="rounded-r-lg border-l-4 border-primary-300 bg-white p-3 italic leading-relaxed text-neutral-600 shadow-sm text-sm">
+                    &ldquo;{strategy.supporting_excerpt}&rdquo;
+                  </blockquote>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-xs leading-normal text-neutral-600">{strategy.source.formatted || strategy.source_ref}</p>
+                    <span className="shrink-0 rounded bg-neutral-100 px-1.5 py-0.5 text-xs font-medium text-neutral-700" title="This citation was generated by AI and should be verified before citing in professional documents">
+                      AI-generated
+                    </span>
+                  </div>
+                </div>
+              </CollapsibleSection>
+            </div>
+          </div>
         </div>
-        <p className="leading-relaxed text-neutral-600">{strategy.why_fits}</p>
       </div>
 
-      <div className="flex flex-col gap-2 rounded-xl border border-accent-100/50 bg-callout-implement p-4 shadow-sm">
-        <div className="flex items-center gap-2 font-semibold text-accent-700">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-5 w-5 text-accent-700"
-            aria-hidden="true"
-          >
-            <line x1="8" y1="6" x2="21" y2="6" />
-            <line x1="8" y1="12" x2="21" y2="12" />
-            <line x1="8" y1="18" x2="21" y2="18" />
-            <line x1="3" y1="6" x2="3.01" y2="6" />
-            <line x1="3" y1="12" x2="3.01" y2="12" />
-            <line x1="3" y1="18" x2="3.01" y2="18" />
-          </svg>
-          <h4 className="text-xs uppercase tracking-wide">How to Implement</h4>
-        </div>
-        <p className="leading-relaxed text-neutral-600">{strategy.how_to}</p>
-      </div>
-
-      <div className="mt-2 flex flex-col gap-3">
-        <blockquote className="rounded-r-lg border-l-4 border-primary-300 bg-surface-100 p-4 italic leading-relaxed text-neutral-600 shadow-sm">
-          &ldquo;{strategy.supporting_excerpt}&rdquo;
-        </blockquote>
-        <div className="flex items-start justify-between gap-2 pl-4">
-          <p className="text-sm text-neutral-600">{strategy.source_ref}</p>
-          <span className="shrink-0 rounded bg-neutral-100 px-1.5 py-0.5 text-2xs font-medium text-neutral-500" title="This citation is AI-generated and should be verified independently">
-            AI-generated
-          </span>
-        </div>
-      </div>
-
-      <div className="flex justify-end border-t border-neutral-100 pt-3">
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-          aria-label={copied ? 'Copied to clipboard' : `Copy ${strategy.title} strategy`}
+      {/* ── Bottom expand tab ────────────────────────────────────────────── */}
+      <button
+        type="button"
+        onClick={() => onToggleExpand(index)}
+        aria-expanded={isExpanded}
+        aria-label={isExpanded ? `Collapse ${strategy.title}` : `Expand ${strategy.title}`}
+        className="flex w-full items-center justify-center border-t border-neutral-100 py-2 text-neutral-300 transition-colors hover:text-neutral-500 focus:outline-none rounded-b-2xl motion-reduce:transition-none"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`h-4 w-4 transition-transform duration-200 motion-reduce:transition-none ${isExpanded ? 'rotate-180' : ''}`}
+          aria-hidden="true"
         >
-          {copied ? (
-            <>
-              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
-              Copied
-            </>
-          ) : (
-            <>
-              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>
-              Copy
-            </>
-          )}
-        </button>
-      </div>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
     </article>
   );
-}
+});

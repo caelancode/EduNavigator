@@ -1,4 +1,5 @@
 import type { LeftRailState } from '../../types/left-rail';
+import { findLabel } from '../../utils/left-rail-summary';
 import {
   GRADE_BAND_OPTIONS,
   SETTING_OPTIONS,
@@ -18,14 +19,6 @@ import {
 interface ExportHeaderProps {
   context: LeftRailState;
   generatedAt: number;
-}
-
-function findLabel(
-  options: { value: string; label: string }[],
-  value: string | null,
-): string {
-  if (!value) return '—';
-  return options.find((o) => o.value === value)?.label ?? value;
 }
 
 export function ExportHeader({ context, generatedAt }: ExportHeaderProps) {
@@ -51,20 +44,20 @@ export function ExportHeader({ context, generatedAt }: ExportHeaderProps) {
   ].filter(([, v]) => v.length > 0) as [string, string][];
 
   const rows: [string, string][] = [
-    ['Grade/Age Band', findLabel(GRADE_BAND_OPTIONS, context.gradeBand)],
-    ['Setting', findLabel(SETTING_OPTIONS, context.setting)],
-    ['Grouping', findLabel(GROUPING_OPTIONS, context.grouping)],
-    ['Time Available', findLabel(TIME_RANGE_OPTIONS, context.timeRange)],
-    ['Support Area', findLabel(SUPPORT_AREA_OPTIONS, context.supportArea)],
-    ['Sub-Area', findLabel(subAreaOptions, context.subArea)],
-    ['Technology', findLabel(TECH_CONTEXT_OPTIONS, context.techContext)],
+    ['Grade/Age Band', findLabel(GRADE_BAND_OPTIONS, context.gradeBand) ?? '—'],
+    ['Setting', findLabel(SETTING_OPTIONS, context.setting) ?? '—'],
+    ['Grouping', findLabel(GROUPING_OPTIONS, context.grouping) ?? '—'],
+    ['Time Available', findLabel(TIME_RANGE_OPTIONS, context.timeRange) ?? '—'],
+    ['Support Area', findLabel(SUPPORT_AREA_OPTIONS, context.supportArea) ?? '—'],
+    ['Sub-Area', findLabel(subAreaOptions, context.subArea) ?? '—'],
+    ['Technology', findLabel(TECH_CONTEXT_OPTIONS, context.techContext) ?? '—'],
     [
       'Output Preference',
-      findLabel(OUTPUT_PREFERENCE_OPTIONS, context.outputPreference),
+      findLabel(OUTPUT_PREFERENCE_OPTIONS, context.outputPreference) ?? '—',
     ],
     [
       'Role Perspective',
-      findLabel(ROLE_PERSPECTIVE_OPTIONS, context.rolePerspective),
+      findLabel(ROLE_PERSPECTIVE_OPTIONS, context.rolePerspective) ?? '—',
     ],
   ];
 

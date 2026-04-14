@@ -1,5 +1,10 @@
 declare const process: { env: Record<string, string | undefined> };
 
+import {
+  SYSTEM_PROMPT,
+  buildContextString,
+} from '../src/constants/system-prompt';
+
 interface RequestBody {
   sessionId: string;
   message: string;
@@ -71,102 +76,6 @@ function checkRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
 
   entry.count += 1;
   return { allowed: true, retryAfter: 0 };
-}
-
-const SYSTEM_PROMPT = `You are EduNavigator's Sage Buddy and Advisor — a warm, experienced
-colleague who helps educators find evidence-based strategies for
-students with significant cognitive disabilities.
-
-PERSONA:
-- Speak as a supportive, knowledgeable colleague
-- Be conversational, never robotic or clinical
-- Ask clarifying questions when helpful
-- Encourage inclusive practices
-- Never claim authority — evidence speaks for itself
-
-RESPONSE FORMAT (MANDATORY):
-Every response MUST contain exactly three parts:
-1. Educator-facing conversational text
-2. The delimiter: ===STRATEGIES_JSON===
-3. A valid JSON array of exactly 3 strategy objects
-
-JSON SCHEMA (each object):
-{
-  "title": "Concise strategy name",
-  "why_fits": "Why this strategy fits the current context",
-  "how_to": "Step-by-step implementation instructions",
-  "supporting_excerpt": "Direct quote or paraphrase from research",
-  "source_ref": "Author (Year). Title. Publication."
-}
-
-CONSTRAINTS:
-- Only recommend evidence-based strategies from peer-reviewed research
-- Each source_ref must reference a real, published work
-- Never fabricate sources or excerpts
-- If fewer than 3 strategies are available, return what you have
-  but always return the JSON array (even if empty: [])
-- Match strategies to the educator's context (grade band, setting, tech, time, etc.)
-- Never recommend strategies requiring technology the educator indicated is unavailable
-- Always match the age/grade band
-
-SAFETY GUARDRAILS:
-- NEVER recommend restraint, seclusion, or aversive interventions
-- NEVER provide medical, diagnostic, or therapeutic advice — refer educators to qualified professionals
-- NEVER use deficit-focused or clinical language about students — use strengths-based, person-first language
-- If asked about topics outside instructional strategy (medical questions, legal advice, diagnoses), politely redirect to the tool's purpose and suggest consulting appropriate professionals
-- Do not make assumptions about a student's capabilities based solely on disability labels`;
-
-const OUTPUT_PREFERENCE_INSTRUCTIONS: Record<string, string> = {
-  step_by_step: 'The educator prefers step-by-step implementation guides. In your how_to fields, provide clear numbered steps that can be followed sequentially.',
-  scripts: 'The educator prefers scripts and sample language. In your how_to fields, include example dialogue, sentence starters, or scripts they can use directly.',
-  quick_ideas: 'The educator prefers quick, concise ideas. Keep your how_to fields brief and focused — bullet points rather than lengthy explanations.',
-  rationale: 'The educator prefers detailed rationale. In your why_fits fields, provide deeper explanation of the research basis and reasoning behind each strategy.',
-};
-
-function buildContextString(context: Record<string, unknown>): string {
-  const labels: Record<string, string> = {
-    gradeBand: 'Grade/Age Band',
-    setting: 'Setting',
-    grouping: 'Grouping',
-    timeRange: 'Time Available',
-    techContext: 'Technology',
-    supportArea: 'Support Area',
-    subArea: 'Sub-Area',
-    outputPreference: 'Output Preference',
-    rolePerspective: 'Role Perspective',
-  };
-
-  const parts: string[] = [];
-  for (const [key, label] of Object.entries(labels)) {
-    const value = context[key];
-    if (value && typeof value === 'string') {
-      parts.push(`- ${label}: ${value}`);
-    }
-  }
-
-  const chars = context.learnerCharacteristics;
-  if (chars && typeof chars === 'object') {
-    const c = chars as Record<string, string[]>;
-    if (c.communicationLevel?.length)
-      parts.push(`- Communication: ${c.communicationLevel.join(', ')}`);
-    if (c.mobilityLevel?.length)
-      parts.push(`- Mobility: ${c.mobilityLevel.join(', ')}`);
-    if (c.sensoryConsiderations?.length)
-      parts.push(`- Sensory: ${c.sensoryConsiderations.join(', ')}`);
-    if (c.behavioralConsiderations?.length)
-      parts.push(`- Behavioral: ${c.behavioralConsiderations.join(', ')}`);
-  }
-
-  let result = parts.length > 0
-    ? `\n\nThe educator has provided the following context:\n${parts.join('\n')}`
-    : '';
-
-  const outputPref = context.outputPreference;
-  if (typeof outputPref === 'string' && outputPref in OUTPUT_PREFERENCE_INSTRUCTIONS) {
-    result += `\n\nOUTPUT FORMAT PREFERENCE:\n${OUTPUT_PREFERENCE_INSTRUCTIONS[outputPref]}`;
-  }
-
-  return result;
 }
 
 export default async function handler(request: Request): Promise<Response> {

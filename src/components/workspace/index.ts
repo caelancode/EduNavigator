@@ -1,9 +1,5 @@
 export { WorkspacePanel } from './WorkspacePanel';
 export { StrategyCard } from './StrategyCard';
-export { StrategyTitle } from './StrategyTitle';
-export { WhyFits } from './WhyFits';
-export { HowTo } from './HowTo';
-export { SourceReference } from './SourceReference';
 export { WorkspaceEmpty } from './WorkspaceEmpty';
 export { WorkspaceLoading } from './WorkspaceLoading';
 export { WorkspaceError } from './WorkspaceError';

@@ -11,7 +11,11 @@ export function buildApiRequest(
   history: ChatMessage[],
   sessionId: string,
 ): ApiRequest {
-  const windowedHistory = history.slice(-MAX_HISTORY_MESSAGES);
+  // Filter out system messages, local guided-intake messages, and the static welcome message
+  const conversationHistory = history.filter(
+    (msg) => msg.role !== 'system' && msg.id !== 'welcome' && !msg.local,
+  );
+  const windowedHistory = conversationHistory.slice(-MAX_HISTORY_MESSAGES);
 
   return {
     sessionId,

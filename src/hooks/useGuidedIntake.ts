@@ -1,0 +1,211 @@
+import { useCallback } from 'react';
+import { useChat } from '../contexts/ChatContext';
+import { useLeftRail } from '../contexts/LeftRailContext';
+import { useSendMessage } from './useSendMessage';
+import { getLabelForFieldValue } from '../utils/field-options';
+import {
+  SUB_AREA_OPTIONS,
+  GRADE_BAND_OPTIONS,
+  SUPPORT_AREA_OPTIONS,
+} from '../constants/left-rail-options';
+import { VALUE_LABELS } from '../constants/system-prompt';
+import { markSupportAreaSynced, markSubAreaSynced, markGradeBandSynced } from './useLeftRailIntakeSync';
+import type { GradeBand } from '../types/left-rail';
+import type { IntakeStage, ChatMessage } from '../types/chat';
+
+export type { IntakeStage };
+
+function makeLocalAssistantMessage(
+  content: string,
+  extras?: Partial<ChatMessage>,
+): ChatMessage {
+  return {
+    id: crypto.randomUUID(),
+    role: 'assistant',
+    content,
+    timestamp: Date.now(),
+    local: true,
+    ...extras,
+  };
+}
+
+function makeLocalUserMessage(content: string): ChatMessage {
+  return {
+    id: crypto.randomUUID(),
+    role: 'user',
+    content,
+    timestamp: Date.now(),
+    local: true,
+  };
+}
+
+function buildConfirmContent(
+  supportArea: string | null,
+  subArea: string | null,
+  gradeBand: string,
+): string {
+  const supportLabel = VALUE_LABELS[supportArea ?? ''] ?? supportArea ?? '';
+  const subAreaLabel = VALUE_LABELS[subArea ?? ''] ?? subArea ?? '';
+  const gradeLabel = VALUE_LABELS[gradeBand] ?? gradeBand;
+  const contextSummary = [supportLabel, subAreaLabel, gradeLabel]
+    .filter(Boolean)
+    .join(' · ');
+  return `Here's what I'll be working with:\n**${contextSummary}**\n\nWant me to find strategies based on this, or is there more about the student or situation that would help? You can type below, or use the sidebar to add details like grouping, setting, or learner characteristics. The more context I have, the more targeted the advice.`;
+}
+
+export function useGuidedIntake() {
+  const { state: chatState, dispatch: chatDispatch } = useChat();
+  const { state: leftRailState, dispatch: leftRailDispatch } = useLeftRail();
+  const { send } = useSendMessage();
+
+  const stage = chatState.intakeStage;
+
+  const selectSupportArea = useCallback(
+    (value: string) => {
+      const label =
+        SUPPORT_AREA_OPTIONS.find((o) => o.value === value)?.label ?? value;
+
+      // Mark before dispatching so the observer in useLeftRailIntakeSync ignores this change.
+      markSupportAreaSynced(value);
+      leftRailDispatch({ type: 'SET_SUPPORT_AREA', payload: value });
+
+      chatDispatch({
+        type: 'ADD_MESSAGE',
+        payload: makeLocalUserMessage(label),
+      });
+
+      const subAreas = SUB_AREA_OPTIONS[value] ?? [];
+      const subAreaValues = subAreas.map((o) => o.value);
+
+      chatDispatch({
+        type: 'ADD_MESSAGE',
+        payload: makeLocalAssistantMessage("What's the main focus?", {
+          nextQuestion: {
+            field: 'subArea',
+            text: "What's the main focus?",
+            options: subAreaValues,
+            isLocal: true,
+          },
+        }),
+      });
+
+      chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'sub_area' });
+    },
+    [chatDispatch, leftRailDispatch],
+  );
+
+  const selectSubArea = useCallback(
+    (value: string) => {
+      const label = getLabelForFieldValue('subArea', value);
+
+      markSubAreaSynced(value);
+      leftRailDispatch({ type: 'SET_SUB_AREA', payload: value });
+
+      chatDispatch({
+        type: 'ADD_MESSAGE',
+        payload: makeLocalUserMessage(label),
+      });
+
+      if (leftRailState.gradeBand) {
+        // Grade band already known from the sidebar — skip to confirm.
+        const confirmContent = buildConfirmContent(
+          leftRailState.supportArea,
+          value,
+          leftRailState.gradeBand,
+        );
+        chatDispatch({
+          type: 'ADD_MESSAGE',
+          payload: makeLocalAssistantMessage(confirmContent, {
+            actionButton: { label: 'Find Strategies' },
+          }),
+        });
+        chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'confirm' });
+      } else {
+        // Normal flow: ask for grade band.
+        const gradeBandValues = GRADE_BAND_OPTIONS.map((o) => o.value);
+        chatDispatch({
+          type: 'ADD_MESSAGE',
+          payload: makeLocalAssistantMessage('And what grade or age band?', {
+            nextQuestion: {
+              field: 'gradeBand',
+              text: 'And what grade or age band?',
+              options: gradeBandValues,
+              isLocal: true,
+            },
+          }),
+        });
+        chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'grade_band' });
+      }
+    },
+    [
+      chatDispatch,
+      leftRailDispatch,
+      leftRailState.gradeBand,
+      leftRailState.supportArea,
+    ],
+  );
+
+  const selectGradeBand = useCallback(
+    (value: string) => {
+      const label = getLabelForFieldValue('gradeBand', value);
+
+      // Mark before dispatching so the observer in useLeftRailIntakeSync ignores this change.
+      markGradeBandSynced(value);
+      leftRailDispatch({
+        type: 'SET_GRADE_BAND',
+        payload: value as GradeBand,
+      });
+
+      chatDispatch({
+        type: 'ADD_MESSAGE',
+        payload: makeLocalUserMessage(label),
+      });
+
+      const confirmContent = buildConfirmContent(
+        leftRailState.supportArea,
+        leftRailState.subArea,
+        value,
+      );
+
+      chatDispatch({
+        type: 'ADD_MESSAGE',
+        payload: makeLocalAssistantMessage(confirmContent, {
+          actionButton: { label: 'Find Strategies' },
+        }),
+      });
+
+      chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'confirm' });
+    },
+    [chatDispatch, leftRailDispatch, leftRailState.supportArea, leftRailState.subArea],
+  );
+
+  const confirmAndSearch = useCallback(
+    (extraMessage?: string) => {
+      chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'complete' });
+
+      const message =
+        extraMessage ??
+        'Find evidence-based strategies for my current context.';
+
+      send(message, { hidden: !extraMessage });
+    },
+    [chatDispatch, send],
+  );
+
+  const skipToApi = useCallback(
+    (message: string) => {
+      chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'complete' });
+      send(message);
+    },
+    [chatDispatch, send],
+  );
+
+  return {
+    stage,
+    selectSupportArea,
+    selectSubArea,
+    selectGradeBand,
+    confirmAndSearch,
+    skipToApi,
+  };
+}

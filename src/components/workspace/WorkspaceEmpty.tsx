@@ -1,31 +1,30 @@
+function PlaceholderCard({ index }: { index: number }) {
+  return (
+    <div
+      className="flex items-center gap-4 rounded-2xl border-2 border-dashed border-neutral-200 py-5 pl-8 pr-6"
+      aria-hidden="true"
+    >
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-neutral-300 text-sm font-bold text-neutral-400">
+        {index + 1}
+      </div>
+      <div className="flex flex-1 flex-col gap-2">
+        <div className="h-4 w-3/4 rounded-full bg-neutral-200" />
+        <div className="h-3 w-1/2 rounded-full bg-neutral-200" />
+      </div>
+    </div>
+  );
+}
+
 export function WorkspaceEmpty() {
   return (
-    <div className="flex h-full items-center justify-center p-6">
-      <div className="text-center">
-        <svg
-          className="mx-auto mb-3 h-12 w-12 text-neutral-300"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
-          />
-        </svg>
-        <p className="text-sm font-medium text-neutral-600">
-          No strategies yet
-        </p>
-        <p className="mt-1 text-xs text-neutral-600">
-          Set your grade band, setting, and support area in the left panel, then click
-          &ldquo;Get Strategies&rdquo; or send a chat message to see evidence-based
-          strategies here.
-        </p>
+    <div className="flex flex-1 flex-col items-center justify-center px-8 py-12">
+      {/* Placeholder strategy card slots */}
+      <div className="mb-8 flex w-full max-w-lg flex-col gap-3">
+        <PlaceholderCard index={0} />
+        <PlaceholderCard index={1} />
+        <PlaceholderCard index={2} />
       </div>
+
     </div>
   );
 }

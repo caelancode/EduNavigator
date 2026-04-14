@@ -1,6 +1,7 @@
 import { Strategy } from './strategy';
 import { LeftRailState } from './left-rail';
 import { ChatMessage } from './chat';
+import { ContextUpdate } from './context-update';
 
 export interface ApiRequest {
   sessionId: string;
@@ -27,5 +28,5 @@ export interface ApiError {
 }
 
 export type ApiResult =
-  | { ok: true; chatText: string; strategies: Strategy[] }
+  | { ok: true; chatText: string; strategies: Strategy[]; contextUpdate?: ContextUpdate }
   | { ok: false; error: ApiError; chatText?: string };

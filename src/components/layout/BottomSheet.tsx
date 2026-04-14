@@ -71,24 +71,22 @@ export function BottomSheet({ isOpen, onClose, children, label }: BottomSheetPro
         aria-modal="true"
         aria-label={label}
         tabIndex={-1}
-        className={`fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] w-full transform flex-col rounded-t-3xl bg-white shadow-2xl transition-transform duration-300 ease-out motion-reduce:transition-none ${
+        className={`fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] w-full transform flex-col rounded-t-3xl bg-surface-50 shadow-2xl transition-transform duration-350 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
         {/* Drag Handle */}
-        <div
-          className="flex w-full shrink-0 cursor-pointer justify-center pb-4 pt-3"
+        <button
+          type="button"
+          className="flex w-full shrink-0 cursor-pointer justify-center border-none bg-transparent pb-4 pt-3"
           onClick={onClose}
-          role="button"
-          tabIndex={0}
           aria-label="Close"
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }}
         >
-          <div className="h-1 w-10 rounded-full bg-neutral-300" />
-        </div>
+          <div className="h-1.5 w-12 rounded-full bg-neutral-300" />
+        </button>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto px-1 pb-8">
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-1 pb-8">
           {children}
         </div>
       </div>

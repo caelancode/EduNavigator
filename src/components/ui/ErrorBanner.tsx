@@ -37,7 +37,7 @@ export function ErrorBanner({ message, onDismiss, onRetry }: ErrorBannerProps) {
         <button
           type="button"
           onClick={onDismiss}
-          className="flex h-[44px] w-[44px] items-center justify-center rounded text-red-500 hover:bg-red-100 hover:text-red-700"
+          className="flex h-[44px] w-[44px] items-center justify-center rounded text-red-600 hover:bg-red-100 hover:text-red-700"
           aria-label="Dismiss error"
         >
           <svg

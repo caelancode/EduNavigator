@@ -1,139 +1,83 @@
 import { useCallback } from 'react';
+import { Button } from '../ui/Button';
 import { useLeftRail } from '../../contexts/LeftRailContext';
 import { useChat } from '../../contexts/ChatContext';
-import { useWorkspace } from '../../contexts/WorkspaceContext';
-import { sendMessage } from '../../services/customgpt';
+import { VALUE_LABELS } from '../../constants/system-prompt';
+import type { LeftRailState } from '../../types/left-rail';
+import type { ChatMessage } from '../../types/chat';
+
+/** Build a human-readable summary of which fields are set in the left rail. */
+function buildChangeSummary(state: LeftRailState): string {
+  const parts: string[] = [];
+
+  if (state.supportArea) parts.push(VALUE_LABELS[state.supportArea] ?? state.supportArea);
+  if (state.subArea) parts.push(VALUE_LABELS[state.subArea] ?? state.subArea);
+  if (state.gradeBand) parts.push(VALUE_LABELS[state.gradeBand] ?? state.gradeBand);
+  if (state.setting) parts.push(VALUE_LABELS[state.setting] ?? state.setting);
+  if (state.grouping) parts.push(VALUE_LABELS[state.grouping] ?? state.grouping);
+  if (state.timeRange) parts.push(VALUE_LABELS[state.timeRange] ?? state.timeRange);
+  if (state.techContext) parts.push(VALUE_LABELS[state.techContext] ?? state.techContext);
+  if (state.outputPreference) parts.push(VALUE_LABELS[state.outputPreference] ?? state.outputPreference);
+  if (state.rolePerspective) parts.push(VALUE_LABELS[state.rolePerspective] ?? state.rolePerspective);
+
+  const chars = state.learnerCharacteristics;
+  if (chars.communicationLevel.length > 0)
+    parts.push(...chars.communicationLevel.map((v) => VALUE_LABELS[v] ?? v));
+  if (chars.mobilityLevel.length > 0)
+    parts.push(...chars.mobilityLevel.map((v) => VALUE_LABELS[v] ?? v));
+  if (chars.sensoryConsiderations.length > 0)
+    parts.push(...chars.sensoryConsiderations.map((v) => VALUE_LABELS[v] ?? v));
+  if (chars.behavioralConsiderations.length > 0)
+    parts.push(...chars.behavioralConsiderations.map((v) => VALUE_LABELS[v] ?? v));
+
+  return parts.join(', ');
+}
 
 export function UpdateGuidanceButton() {
-  const { state: leftRailState } = useLeftRail();
-  const { state: chatState, dispatch: chatDispatch } = useChat();
-  const { strategies, setStrategies, setLoading, setError } = useWorkspace();
+  const { state } = useLeftRail();
+  const { dispatch: chatDispatch } = useChat();
 
-  const hasMinimumSelections =
-    leftRailState.gradeBand !== null &&
-    leftRailState.setting !== null &&
-    leftRailState.supportArea !== null;
+  const hasAnyContext = state.supportArea !== null || state.gradeBand !== null;
 
-  const buttonLabel = strategies.length > 0 ? 'Update Strategies' : 'Get Strategies';
+  const handleClick = useCallback(() => {
+    const summary = buildChangeSummary(state);
 
-  const handleClick = useCallback(async () => {
-    if (!hasMinimumSelections || chatState.isLoading) return;
-
-    const message =
-      'Please provide evidence-based strategies based on my current selections.';
-
-    const userMessage = {
+    // A hidden user message signals to all prior messages that the conversation
+    // has moved on — this causes their action buttons and chips to become inert.
+    const markerMessage: ChatMessage = {
       id: crypto.randomUUID(),
-      role: 'user' as const,
-      content: message,
+      role: 'user',
+      content: 'Updated context.',
       timestamp: Date.now(),
+      local: true,
+      hidden: true,
     };
 
-    chatDispatch({ type: 'ADD_MESSAGE', payload: userMessage });
-    chatDispatch({ type: 'SET_LOADING', payload: true });
-    setLoading(true);
+    const message: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      content: `I see you've updated your context in the sidebar. Here's what I'm working with now:\n\n**${summary}**\n\nWant me to find strategies with this context in mind? You can also type additional details below.`,
+      timestamp: Date.now(),
+      local: true,
+      actionButton: { label: 'Find Strategies' },
+    };
 
-    const result = await sendMessage(
-      message,
-      leftRailState,
-      [...chatState.messages, userMessage],
-      chatState.sessionId,
-    );
-
-    chatDispatch({ type: 'SET_LOADING', payload: false });
-    setLoading(false);
-
-    if (result.ok) {
-      chatDispatch({
-        type: 'ADD_MESSAGE',
-        payload: {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: result.chatText,
-          timestamp: Date.now(),
-        },
-      });
-      setStrategies(result.strategies);
-    } else {
-      if (result.chatText) {
-        chatDispatch({
-          type: 'ADD_MESSAGE',
-          payload: {
-            id: crypto.randomUUID(),
-            role: 'assistant',
-            content: result.chatText,
-            timestamp: Date.now(),
-          },
-        });
-      }
-      chatDispatch({ type: 'SET_ERROR', payload: result.error.message });
-      setError({ code: result.error.code, message: result.error.message });
-    }
-  }, [
-    hasMinimumSelections,
-    chatState.isLoading,
-    chatState.messages,
-    chatState.sessionId,
-    leftRailState,
-    chatDispatch,
-    setStrategies,
-    setLoading,
-    setError,
-  ]);
+    chatDispatch({ type: 'ADD_MESSAGE', payload: markerMessage });
+    chatDispatch({ type: 'ADD_MESSAGE', payload: message });
+  }, [state, chatDispatch]);
 
   return (
-    <div>
-      <button
-        type="button"
-        disabled={!hasMinimumSelections || chatState.isLoading}
+    <div className="border-t border-neutral-100 bg-surface-50 px-5 py-4">
+      <Button
+        variant="primary"
+        size="lg"
         onClick={handleClick}
-        aria-label={
-          hasMinimumSelections
-            ? `${buttonLabel} based on current selections`
-            : 'Select at least grade band, setting, and support area to continue'
-        }
-        className="flex w-full items-center justify-center gap-2 rounded-full bg-accent-500 py-3.5 font-semibold text-neutral-900 shadow-sm transition-all duration-200 hover:bg-accent-400 hover:shadow focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 focus:ring-offset-rail disabled:pointer-events-none disabled:opacity-50"
+        disabled={!hasAnyContext}
+        className="w-full"
+        aria-label="Update strategies based on sidebar changes"
       >
-        {chatState.isLoading ? (
-          <svg
-            className="h-4 w-4 animate-spin"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-        ) : (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-4 w-4"
-            aria-hidden="true"
-          >
-            <path d="M12 3v3" />
-            <path d="M18.36 5.64l-2.12 2.12" />
-            <path d="M21 12h-3" />
-            <path d="M18.36 18.36l-2.12-2.12" />
-            <path d="M12 21v-3" />
-            <path d="M5.64 18.36l2.12-2.12" />
-            <path d="M3 12h3" />
-            <path d="M5.64 5.64l2.12 2.12" />
-          </svg>
-        )}
-        {buttonLabel}
-      </button>
-      {!hasMinimumSelections && (
-        <p className="mt-2 text-center text-xs text-neutral-600">
-          Select grade band, setting, and support area to continue
-        </p>
-      )}
+        Update Context
+      </Button>
     </div>
   );
 }

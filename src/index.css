@@ -3,8 +3,21 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-feature-settings: 'cv11', 'ss01';
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
-    @apply antialiased;
+    @apply antialiased bg-neutral-50 text-neutral-800;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* Heading font applied globally */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Bricolage Grotesque', 'Lexend', ui-sans-serif, system-ui, sans-serif;
   }
 
   /* Global focus-visible styles */
@@ -27,7 +40,126 @@
   input[type='radio'],
   button,
   textarea {
-    @apply transition-colors duration-150;
+    @apply transition-colors duration-150 motion-reduce:transition-none;
+  }
+}
+
+@layer components {
+  /* Custom scrollbar — warm and subtle */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(176, 169, 159, 0.4);
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(145, 137, 129, 0.6);
+  }
+
+  /* Panel dividers — simple solid borders, shadows handle depth */
+  .panel-divider-left {
+    border-color: rgba(211, 207, 200, 0.45);
+  }
+  .panel-divider-right {
+    border-color: rgba(211, 207, 200, 0.45);
+  }
+
+  /* Staggered animation delay utilities */
+  .stagger-1 { animation-delay: 50ms; }
+  .stagger-2 { animation-delay: 100ms; }
+  .stagger-3 { animation-delay: 150ms; }
+  .stagger-4 { animation-delay: 200ms; }
+  .stagger-5 { animation-delay: 250ms; }
+
+  /* Strategy card left accent stripe — only visible when active */
+  .accent-stripe {
+    position: relative;
+  }
+  .accent-stripe::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 0;
+    background: var(--stripe-color, #4d8871);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .accent-stripe[data-stripe-visible]::before {
+    opacity: 1;
+  }
+
+  /* Active button press */
+  .btn-press:active {
+    transform: scale(0.96);
+  }
+
+  /* Skeleton shimmer — directional loading indicator */
+  .skeleton-shimmer {
+    background: linear-gradient(90deg, #d3cfc8 25%, #e6e3de 50%, #d3cfc8 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Panel toggle tooltip */
+  .panel-toggle-tooltip {
+    position: relative;
+  }
+  .panel-toggle-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.375rem 0.625rem;
+    border-radius: 0.5rem;
+    background-color: #3a3632;
+    color: white;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  .panel-toggle-tooltip:hover::after,
+  .panel-toggle-tooltip:focus-visible::after {
+    opacity: 1;
+  }
+  .panel-toggle-tooltip-left::after {
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .panel-toggle-tooltip-right::after {
+    right: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+@layer utilities {
+  /* Motion-reduce: disable ALL custom animations */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-in-up,
+    .animate-slide-in-left,
+    .animate-slide-in-right,
+    .animate-scale-in,
+    .animate-glow-pulse,
+    .animate-wizard-enter,
+    .animate-wizard-exit,
+    .animate-pop,
+    .animate-shimmer,
+    .skeleton-shimmer {
+      animation: none !important;
+    }
+    .btn-press:active {
+      transform: none !important;
+    }
   }
 }
 

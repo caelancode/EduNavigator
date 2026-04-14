@@ -3,5 +3,7 @@ export { MessageList } from './MessageList';
 export { ChatMessage } from './ChatMessage';
 export { ChatInput } from './ChatInput';
 export { TypingIndicator } from './TypingIndicator';
-export { ChatCopyButton } from './ChatCopyButton';
-export { ChatSkeleton } from './ChatSkeleton';
+export { CitationBadge } from './CitationBadge';
+export { ReadyForStrategiesButton } from './ReadyForStrategiesButton';
+export { WelcomeMessage } from './WelcomeMessage';
+

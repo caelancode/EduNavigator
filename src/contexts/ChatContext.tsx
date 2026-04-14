@@ -5,17 +5,27 @@ import {
   type ReactNode,
   type Dispatch,
 } from 'react';
-import type { ChatState, ChatAction } from '../types/chat';
+import type { ChatState, ChatAction, ChatMessage, IntakeStage } from '../types/chat';
 
 function generateSessionId(): string {
   return crypto.randomUUID();
 }
 
+const welcomeMessage: ChatMessage = {
+  id: 'welcome',
+  role: 'assistant',
+  content: 'What are you working on with this student?',
+  timestamp: Date.now(),
+  // No nextQuestion here — WelcomeMessage component renders its own support area cards.
+  // Adding nextQuestion would create duplicate chips in the chat thread.
+};
+
 export const initialChatState: ChatState = {
-  messages: [],
+  messages: [welcomeMessage],
   isLoading: false,
   error: null,
   sessionId: generateSessionId(),
+  intakeStage: 'landing',
 };
 
 export function chatReducer(
@@ -36,10 +46,18 @@ export function chatReducer(
     case 'CLEAR_HISTORY':
       return {
         ...state,
-        messages: [],
+        messages: [{ ...welcomeMessage, timestamp: Date.now() }],
         error: null,
         sessionId: generateSessionId(),
+        intakeStage: 'landing',
       };
+    case 'REMOVE_MESSAGE':
+      return {
+        ...state,
+        messages: state.messages.filter((m) => m.id !== action.payload),
+      };
+    case 'SET_INTAKE_STAGE':
+      return { ...state, intakeStage: action.payload as IntakeStage };
   }
 }
 

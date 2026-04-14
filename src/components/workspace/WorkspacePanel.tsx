@@ -1,37 +1,93 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useLeftRail } from '../../contexts/LeftRailContext';
+import { useChat } from '../../contexts/ChatContext';
+import { useCrossReference } from '../../contexts/CrossReferenceContext';
 import { StrategyCard } from './StrategyCard';
 import { WorkspaceEmpty } from './WorkspaceEmpty';
 import { WorkspaceLoading } from './WorkspaceLoading';
 import { WorkspaceError } from './WorkspaceError';
 import { ExportButton } from '../export';
+import type { Strategy } from '../../types/strategy';
 
 export function WorkspacePanel() {
   const {
     strategies,
+    contextAtGeneration,
+    pendingStrategies,
     isLoading,
     error,
     selectedIndices,
-    toggleSelection,
     setError,
+    confirmPendingStrategies,
+    cancelPendingStrategies,
   } = useWorkspace();
 
   const { state: leftRailState } = useLeftRail();
-  const [contextSnapshot, setContextSnapshot] = useState('');
-  const isContextStale = strategies.length > 0 && contextSnapshot !== '' && contextSnapshot !== JSON.stringify(leftRailState);
+  const { state: chatState } = useChat();
+  const hasMessages = chatState.messages.length > 0;
+  const { activeCitation, activeCitationInteraction, strategyCardRefs, setActiveCitation } =
+    useCrossReference();
+  const [citationAnnouncement, setCitationAnnouncement] = useState('');
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
-  // Snapshot left rail state when strategies load
+  // Accordion toggle — only one card open at a time
+  const handleToggleExpand = useCallback((index: number) => {
+    setExpandedIndex((prev) => (prev === index ? null : index));
+  }, []);
+
+  // Toggle expand when a citation badge is clicked in chat
   useEffect(() => {
-    if (strategies.length > 0) {
-      setContextSnapshot(JSON.stringify(leftRailState));
+    if (activeCitationInteraction === 'click') {
+      if (activeCitation) {
+        setExpandedIndex((prev) =>
+          prev === activeCitation.strategyIndex ? null : activeCitation.strategyIndex
+        );
+      } else {
+        setExpandedIndex(null);
+      }
     }
-    // Only track when strategies change, not on every left rail update
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [strategies]);
+  }, [activeCitation, activeCitationInteraction]);
+
+  // Scroll to and highlight the cited strategy card
+  useEffect(() => {
+    if (highlightTimeoutRef.current) {
+      clearTimeout(highlightTimeoutRef.current);
+    }
+
+    if (activeCitation) {
+      const el = strategyCardRefs.current.get(activeCitation.strategyIndex);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const title = strategies[activeCitation.strategyIndex]?.title;
+        if (title) {
+          setCitationAnnouncement(`Showing strategy: ${title}`);
+        }
+      }
+
+      // Auto-clear highlight after 3 seconds
+      highlightTimeoutRef.current = setTimeout(() => {
+        setActiveCitation(null);
+        setCitationAnnouncement('');
+      }, 3000);
+    } else {
+      setCitationAnnouncement('');
+    }
+
+    return () => {
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+    };
+  }, [activeCitation, strategyCardRefs, strategies, setActiveCitation]);
+  const isContextStale =
+    strategies.length > 0 &&
+    contextAtGeneration !== null &&
+    JSON.stringify(contextAtGeneration) !== JSON.stringify(leftRailState);
 
   const [statusAnnouncement, setStatusAnnouncement] = useState('');
-  const [showUpdatedBadge, setShowUpdatedBadge] = useState(false);
+  const [showArrivalFlash, setShowArrivalFlash] = useState(false);
   const prevCountRef = useRef(strategies.length);
   const isFirstRender = useRef(true);
 
@@ -43,12 +99,18 @@ export function WorkspacePanel() {
     }
     if (strategies.length > 0) {
       setStatusAnnouncement(`${strategies.length} ${strategies.length === 1 ? 'strategy' : 'strategies'} loaded`);
-      setShowUpdatedBadge(true);
-      const timer = setTimeout(() => setShowUpdatedBadge(false), 3000);
-      return () => clearTimeout(timer);
+      // Flash border when strategies first arrive
+      if (prevCountRef.current === 0) {
+        setShowArrivalFlash(true);
+        const timer = setTimeout(() => setShowArrivalFlash(false), 1000);
+        prevCountRef.current = strategies.length;
+        return () => clearTimeout(timer);
+      }
     }
     prevCountRef.current = strategies.length;
   }, [strategies]);
+
+  const handleWorkspaceInteraction = useCallback(() => {}, []);
 
   const statusElement = (
     <div className="sr-only" role="status" aria-live="assertive" aria-atomic="true">
@@ -56,69 +118,177 @@ export function WorkspacePanel() {
     </div>
   );
 
-  if (isLoading) {
-    return <>{statusElement}<WorkspaceLoading /></>;
-  }
-
-  if (error) {
-    return (
-      <>{statusElement}<WorkspaceError
-        code={error.code}
-        message={error.message}
-        onDismiss={() => setError(null)}
-      /></>
-    );
-  }
-
-  if (strategies.length === 0) {
-    return <>{statusElement}<WorkspaceEmpty /></>;
-  }
+  const citationAnnouncementElement = (
+    <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+      {citationAnnouncement}
+    </div>
+  );
 
   return (
-    <div className="h-full overflow-y-auto p-4">
+    <div className="flex h-full flex-col">
       {statusElement}
-      {isContextStale && (
-        <div className="mb-3 flex items-center gap-2 rounded-lg border border-accent-200 bg-accent-50 px-3 py-2 text-xs text-accent-800">
-          <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
-          Context changed — click &ldquo;Update Guidance&rdquo; to see new strategies
-        </div>
-      )}
-      <div className="mb-3 flex items-center justify-between">
-        <div>
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
-            Evidence-Based Strategies ({strategies.length})
-            {showUpdatedBadge && (
-              <span className="animate-pulse rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700 motion-reduce:animate-none">
-                Updated
+      {citationAnnouncementElement}
+
+      {/* Panel header */}
+      <div className="border-b border-neutral-200 bg-neutral-100 px-5 py-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-heading text-sm font-bold tracking-tight text-neutral-800">
+            Evidence-Based Strategies
+            {strategies.length > 0 && (
+              <span className="ml-1.5 font-medium text-neutral-500">
+                ({strategies.length})
               </span>
             )}
           </h2>
-          <p className="text-2xs text-neutral-500">Validated strategies from research sources</p>
+          {strategies.length > 0 && <ExportButton />}
         </div>
-        <div className="flex items-center gap-3">
-          {selectedIndices.size > 0 && (
-            <span className="text-xs text-primary-700">
-              {selectedIndices.size} selected
-            </span>
+        <p className="mt-1 text-xs text-neutral-500">
+          {strategies.length > 0
+            ? 'Matched to your current teaching context'
+            : hasMessages
+              ? 'Strategies will appear here as the conversation develops.'
+              : 'Strategies will appear here once you start chatting.'}
+        </p>
+      </div>
+
+      {/* Content area */}
+      {isLoading && strategies.length > 0 ? (
+        <WorkspaceLoading />
+      ) : error ? (
+        <WorkspaceError
+          code={error.code}
+          message={error.message}
+          onDismiss={() => setError(null)}
+        />
+      ) : strategies.length === 0 ? (
+        <WorkspaceEmpty />
+      ) : (
+        <div
+          className="flex-1 overflow-y-auto custom-scrollbar p-5"
+          role="presentation"
+          onClick={handleWorkspaceInteraction}
+          onScroll={handleWorkspaceInteraction}
+        >
+          {pendingStrategies && (
+            <div className="mb-4 flex items-start gap-3 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800 shadow-card animate-fade-in-up motion-reduce:animate-none">
+              <div className="flex-1">
+                <p className="font-semibold">New strategies are ready</p>
+                <p className="mt-0.5 text-primary-700">Replace your current selection with new strategies?</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={cancelPendingStrategies}
+                  className="rounded-md px-3 py-1.5 text-xs font-medium text-primary-700 hover:bg-primary-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  Keep current
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmPendingStrategies}
+                  className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  Replace
+                </button>
+              </div>
+            </div>
           )}
-          <ExportButton />
+          {isContextStale && (
+            <div className="mb-4 flex items-start gap-3 rounded-xl border border-accent-200 bg-accent-50 px-4 py-3 text-sm text-accent-800 shadow-card animate-fade-in-up motion-reduce:animate-none">
+              <svg className="mt-0.5 h-5 w-5 shrink-0 animate-pulse motion-reduce:animate-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+              <div>
+                <p className="font-semibold">Your settings have changed</p>
+                <p className="mt-0.5 text-accent-700">Send a new message or click &ldquo;Update Context&rdquo; in the settings panel to refresh.</p>
+              </div>
+            </div>
+          )}
+          <div
+            className={`space-y-4 ${showArrivalFlash ? 'rounded-2xl animate-border-flash motion-reduce:animate-none' : ''}`}
+            role="status"
+            aria-label={`${strategies.length} strategies loaded`}
+          >
+            {strategies.map((strategy, index) => (
+              <StrategyCard
+                key={`${strategy.title}-${index}`}
+                strategy={strategy}
+                index={index}
+                isExpanded={expandedIndex === index}
+                onToggleExpand={handleToggleExpand}
+              />
+            ))}
+          </div>
+
+          {/* Copy all */}
+          <div className="mt-6 border-t border-neutral-200 pt-4">
+            <CopyAllButton strategies={strategies} selectedIndices={selectedIndices} />
+          </div>
         </div>
-      </div>
-      <div
-        className="space-y-4"
-        role="status"
-        aria-label={`${strategies.length} strategies loaded`}
-      >
-        {strategies.map((strategy, index) => (
-          <StrategyCard
-            key={`${strategy.title}-${index}`}
-            strategy={strategy}
-            index={index}
-            isSelected={selectedIndices.has(index)}
-            onToggleSelect={toggleSelection}
-          />
-        ))}
-      </div>
+      )}
     </div>
+  );
+}
+
+function CopyAllButton({ strategies, selectedIndices }: { strategies: Strategy[]; selectedIndices: Set<number> }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyAll = useCallback(async () => {
+    const items = selectedIndices.size > 0
+      ? strategies.filter((_, i) => selectedIndices.has(i))
+      : strategies;
+
+    const text = items.map((s, i) => {
+      const lines: string[] = [`Strategy ${i + 1}: ${s.title}`, ''];
+      if (s.context_tagline) lines.push(`Context: ${s.context_tagline}`, '');
+      lines.push('Quick Version:', s.quick_version, '');
+      if (s.steps) {
+        if (s.steps.prep.length > 0) {
+          lines.push('Prep:');
+          s.steps.prep.forEach((step) => lines.push(`  • ${step}`));
+          lines.push('');
+        }
+        if (s.steps.during.length > 0) {
+          lines.push('During:');
+          s.steps.during.forEach((step) => lines.push(`  • ${step}`));
+          lines.push('');
+        }
+        if (s.steps.follow_up.length > 0) {
+          lines.push('Follow-Up:');
+          s.steps.follow_up.forEach((step) => lines.push(`  • ${step}`));
+          lines.push('');
+        }
+      } else if (s.how_to) {
+        lines.push('How to Implement:', s.how_to, '');
+      }
+      lines.push('Why This Works:', s.why_fits, '', `"${s.supporting_excerpt}"`, `— ${s.source.formatted || s.source_ref}`);
+      return lines.join('\n');
+    }).join('\n\n---\n\n');
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard API may not be available
+    }
+  }, [strategies, selectedIndices]);
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopyAll}
+      className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 ${copied ? 'border-success-500 bg-success-50 text-success-800' : 'border-neutral-300 text-neutral-600 hover:bg-neutral-50'}`}
+    >
+      {copied ? (
+        <>
+          <svg className="h-3.5 w-3.5 animate-scale-in motion-reduce:animate-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+          Copied!
+        </>
+      ) : (
+        <>
+          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>
+          Copy All Strategies
+        </>
+      )}
+    </button>
   );
 }

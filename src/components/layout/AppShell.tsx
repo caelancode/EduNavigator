@@ -1,6 +1,8 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { TopBar } from './TopBar';
 import { ThreePanelLayout } from './ThreePanelLayout';
+import { ContextSummaryBar } from './ContextSummaryBar';
+import { useWorkspace } from '../../contexts/WorkspaceContext';
 
 interface AppShellProps {
   leftPanel: ReactNode;
@@ -13,8 +15,29 @@ export function AppShell({
   centerPanel,
   rightPanel,
 }: AppShellProps) {
+  const { strategies } = useWorkspace();
+
+  useEffect(() => {
+    if (strategies.length === 0) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [strategies.length]);
+
+  // Wrap center panel with the context summary bar
+  const centerWithSummary = (
+    <div className="flex h-full flex-col">
+      <ContextSummaryBar />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {centerPanel}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col bg-neutral-50">
       <a href="#main-content" className="skip-to-content">
         Skip to main content
       </a>
@@ -26,14 +49,10 @@ export function AppShell({
       >
         <ThreePanelLayout
           leftPanel={leftPanel}
-          centerPanel={centerPanel}
+          centerPanel={centerWithSummary}
           rightPanel={rightPanel}
         />
       </main>
-      <footer className="shrink-0 border-t border-neutral-200 bg-neutral-50 px-4 py-2 text-center text-xs text-neutral-600">
-        <p>Strategies are AI-generated and should be reviewed by qualified professionals before implementation. Sources should be verified independently.</p>
-        <p className="mt-0.5 text-neutral-500">No personal data is collected or stored. Your inputs are not saved between sessions.</p>
-      </footer>
     </div>
   );
 }
