@@ -40,7 +40,7 @@ export function TopBar() {
           <h1 className="font-heading text-xl font-bold tracking-wide text-white leading-tight">
             EduNavigator
           </h1>
-          <p className="hidden text-xs text-primary-100 sm:block">
+          <p className="hidden text-sm text-primary-100 sm:block">
             Evidence-Based Strategy Finder
           </p>
         </button>

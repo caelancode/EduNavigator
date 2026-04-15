@@ -55,7 +55,7 @@ export function DevLoadButton() {
       type="button"
       onClick={handleClick}
       title="Load mock data (dev only)"
-      className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-amber-500/20 px-3 py-2 text-xs font-semibold text-amber-200 shadow-sm transition-all hover:bg-amber-500/30 active:scale-95 motion-reduce:transform-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:ring-offset-2 focus:ring-offset-primary-800"
+      className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-amber-500/20 px-3 py-2 text-sm font-semibold text-amber-200 shadow-sm transition-all hover:bg-amber-500/30 active:scale-95 motion-reduce:transform-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:ring-offset-2 focus:ring-offset-primary-800"
     >
       <svg
         className="h-4 w-4"

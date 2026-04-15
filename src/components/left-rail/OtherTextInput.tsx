@@ -32,7 +32,7 @@ export function OtherTextInput({ stepId, onBlur }: OtherTextInputProps) {
     <div ref={containerRef} className="mt-3" onBlur={handleBlur}>
       <label
         htmlFor={`other-note-${stepId}`}
-        className="block text-xs font-medium text-neutral-600 mb-1.5"
+        className="block text-sm font-medium text-neutral-600 mb-1.5"
       >
         Could you describe?
       </label>

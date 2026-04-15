@@ -33,7 +33,7 @@ export function TypingIndicator({ onCancel }: TypingIndicatorProps) {
             style={{ animationDelay: '300ms' }}
           />
           {elapsed > 3 && (
-            <span className="ml-1.5 text-xs tabular-nums text-neutral-400">
+            <span className="ml-1.5 text-sm tabular-nums text-neutral-400">
               {elapsed}s
             </span>
           )}
@@ -43,7 +43,7 @@ export function TypingIndicator({ onCancel }: TypingIndicatorProps) {
         <button
           type="button"
           onClick={onCancel}
-          className="text-xs text-neutral-500 underline hover:text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="text-sm text-neutral-500 underline hover:text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
         >
           Cancel
         </button>

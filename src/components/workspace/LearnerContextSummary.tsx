@@ -117,7 +117,7 @@ export function LearnerContextSummary() {
         type="button"
         onClick={() => setCollapsed((c) => !c)}
         aria-expanded={!collapsed}
-        className="flex w-full items-center gap-2 px-5 py-2.5 text-left text-xs font-semibold text-neutral-700 transition-colors hover:bg-neutral-50/50"
+        className="flex w-full items-center gap-2 px-5 py-2.5 text-left text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50/50"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

@@ -40,19 +40,10 @@ export interface NextQuestion {
 }
 
 /**
- * A single AI-generated chip the educator can click as a conversational shortcut.
- * The label is both displayed on the chip and sent as the message verbatim.
- */
-export interface SuggestedAction {
-  label: string;
-}
-
-/**
  * Structured context extracted from an AI response via ===CONTEXT_UPDATE===.
  * Strictly optional — its absence is never an error.
  */
 export interface ContextUpdate {
   updates: AIContextUpdates;
   nextQuestion?: NextQuestion;
-  suggestedActions?: SuggestedAction[];
 }

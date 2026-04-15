@@ -54,18 +54,18 @@ export function AccordionField({
           <span className="flex items-center gap-1.5 font-heading text-sm font-semibold text-neutral-800 group-hover:text-neutral-900">
             {label}
             {required && (
-              <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700 ring-1 ring-inset ring-red-200" aria-label="required">
+              <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-sm font-semibold text-red-700 ring-1 ring-inset ring-red-200" aria-label="required">
                 Required
               </span>
             )}
             {isInferred && (
-              <span className="inline-flex items-center rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-600 ring-1 ring-inset ring-blue-200">
+              <span className="inline-flex items-center rounded-full bg-blue-50 px-1.5 py-0.5 text-sm font-medium text-blue-600 ring-1 ring-inset ring-blue-200">
                 Inferred
               </span>
             )}
           </span>
           {!isOpen && currentValue && (
-            <span className="truncate text-xs text-neutral-500">
+            <span className="truncate text-sm text-neutral-500">
               {currentValue}
             </span>
           )}

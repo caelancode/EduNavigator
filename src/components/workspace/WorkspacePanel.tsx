@@ -149,7 +149,7 @@ export function WorkspacePanel() {
           </h2>
           {strategies.length > 0 && <ExportButton />}
         </div>
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-1 text-sm text-neutral-500">
           {strategies.length > 0
             ? 'Matched to your current teaching context'
             : hasMessages
@@ -206,7 +206,7 @@ export function WorkspacePanel() {
                 {groupIndex > 0 && (
                   <div className="flex items-center gap-3 mb-4 mt-2">
                     <div className="flex-1 border-t border-neutral-200" />
-                    <span className="text-xs font-medium text-neutral-400 shrink-0">
+                    <span className="text-sm font-medium text-neutral-400 shrink-0">
                       Round {group.turnNumber}
                     </span>
                     <div className="flex-1 border-t border-neutral-200" />

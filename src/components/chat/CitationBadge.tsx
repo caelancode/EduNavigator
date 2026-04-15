@@ -65,7 +65,7 @@ export const CitationBadge = memo(function CitationBadge({
   if (!isActive) {
     return (
       <span
-        className="inline-flex items-center justify-center rounded-full bg-neutral-300 px-1.5 text-xs font-bold text-neutral-700"
+        className="inline-flex items-center justify-center rounded-full bg-neutral-300 px-1.5 text-sm font-bold text-neutral-700"
         title="This reference is from a previous set of strategies"
       >
         {citationNumber}
@@ -81,7 +81,7 @@ export const CitationBadge = memo(function CitationBadge({
       onMouseLeave={handleMouseLeave}
       aria-label={`Reference ${citationNumber}${strategyTitle ? `: ${strategyTitle}` : ''}. Click to show in strategies panel.`}
       title={strategyTitle ?? `Strategy ${citationNumber}`}
-      className={`inline-flex h-5 min-w-5 cursor-pointer items-center justify-center rounded-full px-1.5 text-xs font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ${
+      className={`inline-flex h-5 min-w-5 cursor-pointer items-center justify-center rounded-full px-1.5 text-sm font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ${
         isCurrentlyActive
           ? `${badgeActive} text-white shadow-sm`
           : `${badgeColor} text-white ${badgeHover}`

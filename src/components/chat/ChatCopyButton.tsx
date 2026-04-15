@@ -21,7 +21,7 @@ export function ChatCopyButton({ text }: ChatCopyButtonProps) {
     <button
       type="button"
       onClick={handleCopy}
-      className={`min-h-[32px] min-w-[44px] flex items-center gap-1 rounded px-2 text-xs transition-colors ${copied ? 'bg-success-50 text-success-800' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-700'}`}
+      className={`min-h-[32px] min-w-[44px] flex items-center gap-1 rounded px-2 text-sm transition-colors ${copied ? 'bg-success-50 text-success-800' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-700'}`}
       aria-label={copied ? 'Copied to clipboard' : 'Copy message'}
     >
       {copied ? (

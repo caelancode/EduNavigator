@@ -159,7 +159,7 @@ export function ExportModal({ isOpen, strategies, onClose }: ExportModalProps) {
                     />
                     <div className="flex items-start gap-2 min-w-0">
                       <span
-                        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${BADGE_COLORS[index % BADGE_COLORS.length]}`}
+                        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ${BADGE_COLORS[index % BADGE_COLORS.length]}`}
                         aria-hidden="true"
                       >
                         {index + 1}
@@ -169,7 +169,7 @@ export function ExportModal({ isOpen, strategies, onClose }: ExportModalProps) {
                           {strategy.title}
                         </p>
                         {strategy.context_tagline && (
-                          <p className="mt-0.5 text-xs leading-relaxed text-neutral-500 italic">
+                          <p className="mt-0.5 text-sm leading-relaxed text-neutral-500 italic">
                             {strategy.context_tagline}
                           </p>
                         )}
@@ -183,7 +183,7 @@ export function ExportModal({ isOpen, strategies, onClose }: ExportModalProps) {
 
           {/* Validation message — sits tight below the list */}
           {noneChecked && (
-            <p className="mt-2 shrink-0 text-[11px] text-neutral-400" role="alert">
+            <p className="mt-2 shrink-0 text-sm text-neutral-400" role="alert">
               Select at least one strategy to export.
             </p>
           )}

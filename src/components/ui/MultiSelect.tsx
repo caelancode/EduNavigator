@@ -61,13 +61,13 @@ export function MultiSelect({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
             <span className="flex min-w-0 flex-1 items-center gap-1.5">
-              <span className="font-heading text-[13px] font-semibold text-neutral-700">
+              <span className="font-heading text-sm font-semibold text-neutral-700">
                 {legend}
               </span>
               {legendExtra}
             </span>
             {selectedCount > 0 && (
-              <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary-100 px-1.5 text-[11px] font-bold text-primary-700">
+              <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary-100 px-1.5 text-sm font-bold text-primary-700">
                 {selectedCount}
               </span>
             )}
@@ -93,7 +93,7 @@ export function MultiSelect({
                   <span>
                     {opt.label}
                     {opt.description && (
-                      <span className="block text-xs leading-snug text-neutral-700">{opt.description}</span>
+                      <span className="block text-sm leading-snug text-neutral-700">{opt.description}</span>
                     )}
                   </span>
                 </label>
@@ -124,7 +124,7 @@ export function MultiSelect({
             <span>
               {opt.label}
               {opt.description && (
-                <span className="block text-xs text-neutral-700">{opt.description}</span>
+                <span className="block text-sm text-neutral-700">{opt.description}</span>
               )}
             </span>
           </label>

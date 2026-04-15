@@ -47,7 +47,7 @@ export function WelcomeMessage() {
 
         {/* Landing card with question + support area cards */}
         <div className="min-w-0 rounded-2xl rounded-tl-md border border-primary-100/60 bg-gradient-to-br from-white via-white to-primary-50/30 px-5 py-5 shadow-card sm:px-7 sm:py-6">
-          <h2 className="font-heading text-2xl font-bold text-neutral-900">
+          <h2 className="font-heading text-lg font-bold text-neutral-900">
             What are you working on with this student?
           </h2>
           <p className="mt-2 text-sm text-neutral-500">
@@ -66,7 +66,7 @@ export function WelcomeMessage() {
                 <span className="text-sm font-semibold text-neutral-800 group-hover:text-primary-700">
                   {card.label}
                 </span>
-                <span className="mt-0.5 text-xs leading-snug text-neutral-500">
+                <span className="mt-0.5 text-sm leading-snug text-neutral-500">
                   {card.subtitle}
                 </span>
               </button>

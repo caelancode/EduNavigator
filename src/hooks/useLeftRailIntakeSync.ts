@@ -68,7 +68,9 @@ function makeLocalUserMessage(content: string): ChatMessage {
   };
 }
 
-export function useLeftRailIntakeSync(): void {
+export function useLeftRailIntakeSync(
+  send: (text: string, options?: { hidden?: boolean }) => Promise<void>,
+): void {
   const { state: chatState, dispatch: chatDispatch } = useChat();
   const { state: leftRailState } = useLeftRail();
 
@@ -136,18 +138,9 @@ export function useLeftRailIntakeSync(): void {
       });
 
       if (gradeBand !== null) {
-        // Grade band already set — skip to confirm.
-        const gradeLabel = VALUE_LABELS[gradeBand] ?? gradeBand;
-        const supportLabel = VALUE_LABELS[supportArea ?? ''] ?? supportArea ?? '';
-        const contextSummary = [supportLabel, label, gradeLabel].filter(Boolean).join(' · ');
-        const confirmContent = `Here's what I'll be working with:\n**${contextSummary}**\n\nWant me to find strategies based on this, or is there more about the student or situation that would help? You can type below, or use the sidebar to add details like grouping, setting, or learner characteristics. The more context I have, the more targeted the advice.`;
-        chatDispatch({
-          type: 'ADD_MESSAGE',
-          payload: makeLocalAssistantMessage(confirmContent, {
-            actionButton: { label: 'Find Strategies' },
-          }),
-        });
-        chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'confirm' });
+        // Grade band already set — fire API immediately.
+        chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'complete' });
+        send('Find evidence-based strategies for my current context.', { hidden: true });
       } else {
         // Normal flow: ask for grade band.
         const gradeBandValues = GRADE_BAND_OPTIONS.map((o) => o.value);
@@ -175,24 +168,14 @@ export function useLeftRailIntakeSync(): void {
     ) {
       _syncedGradeBand = gradeBand;
       const gradeLabel = VALUE_LABELS[gradeBand] ?? gradeBand;
-      const supportLabel = VALUE_LABELS[supportArea ?? ''] ?? supportArea ?? '';
-      const subAreaLabel = VALUE_LABELS[subArea ?? ''] ?? subArea ?? '';
-      const contextSummary = [supportLabel, subAreaLabel, gradeLabel]
-        .filter(Boolean)
-        .join(' · ');
-      const confirmContent = `Here's what I'll be working with:\n**${contextSummary}**\n\nWant me to find strategies based on this, or is there more about the student or situation that would help? You can type below, or use the sidebar to add details like grouping, setting, or learner characteristics. The more context I have, the more targeted the advice.`;
 
       chatDispatch({
         type: 'ADD_MESSAGE',
         payload: makeLocalUserMessage(gradeLabel),
       });
-      chatDispatch({
-        type: 'ADD_MESSAGE',
-        payload: makeLocalAssistantMessage(confirmContent, {
-          actionButton: { label: 'Find Strategies' },
-        }),
-      });
-      chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'confirm' });
+      // Fire API immediately — barometer decides what to do.
+      chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'complete' });
+      send('Find evidence-based strategies for my current context.', { hidden: true });
       return;
     }
   }, [
@@ -201,5 +184,6 @@ export function useLeftRailIntakeSync(): void {
     leftRailState.gradeBand,
     chatState.intakeStage,
     chatDispatch,
+    send,
   ]);
 }

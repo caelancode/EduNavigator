@@ -68,7 +68,7 @@ export function FieldHelpButton({ description, label = 'Help' }: FieldHelpButton
         onFocus={() => setIsOpen(true)}
         onBlur={() => setIsOpen(false)}
       >
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold leading-none text-neutral-600 transition-colors hover:bg-neutral-300 hover:text-neutral-700">
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-200 text-sm font-semibold leading-none text-neutral-600 transition-colors hover:bg-neutral-300 hover:text-neutral-700">
           ?
         </span>
       </button>
@@ -77,7 +77,7 @@ export function FieldHelpButton({ description, label = 'Help' }: FieldHelpButton
           <span
             ref={tooltipRef}
             role="tooltip"
-            className="pointer-events-none fixed z-[9999] w-64 -translate-x-1/2 whitespace-pre-line rounded-lg bg-neutral-800 px-3 py-2 text-xs leading-relaxed text-white shadow-lg"
+            className="pointer-events-none fixed z-[9999] w-64 -translate-x-1/2 whitespace-pre-line rounded-lg bg-neutral-800 px-3 py-2 text-sm leading-relaxed text-white shadow-lg"
             style={{ top: position.top, left: position.left }}
           >
             {description}

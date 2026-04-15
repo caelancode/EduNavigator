@@ -144,7 +144,7 @@ export function ThreePanelLayout({
               <polyline points="9 18 15 12 9 6" />
             </svg>
             {!isStrategiesOpen && hasStrategies && (
-              <span className="absolute -left-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-600 text-xs font-bold text-white">
+              <span className="absolute -left-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white">
                 {strategies.length}
               </span>
             )}
@@ -216,7 +216,7 @@ export function ThreePanelLayout({
               <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
             </svg>
           </button>
-          <span className="text-[10px] font-medium text-neutral-600" aria-hidden="true">Settings</span>
+          <span className="text-sm font-medium text-neutral-600" aria-hidden="true">Settings</span>
         </div>
 
         {/* Strategies Pill — shows when strategies exist */}

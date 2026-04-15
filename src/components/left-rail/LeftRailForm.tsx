@@ -79,7 +79,7 @@ function SectionCard({
               {title}
             </span>
             {required && (
-              <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700 ring-1 ring-inset ring-red-200">
+              <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-sm font-semibold text-red-700 ring-1 ring-inset ring-red-200">
                 Required
               </span>
             )}
@@ -176,7 +176,7 @@ export function LeftRailForm() {
                 className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${done ? 'bg-primary-500' : 'bg-neutral-200'}`}
               />
             ))}
-            <span className="ml-1 text-xs font-medium text-neutral-700">
+            <span className="ml-1 text-sm font-medium text-neutral-700">
               {sectionsCompleted}/4
             </span>
           </div>

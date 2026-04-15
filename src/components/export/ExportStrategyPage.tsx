@@ -30,7 +30,7 @@ export function ExportStrategyPage({
 
       {/* Quick Version */}
       <div className="mb-5 ml-12 rounded-md border-l-4 border-primary-400 bg-primary-50 px-4 py-3">
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary-700">
+        <p className="mb-1 text-sm font-semibold uppercase tracking-wide text-primary-700">
           Quick Version
         </p>
         <p className="text-sm leading-relaxed text-neutral-700">
@@ -49,8 +49,8 @@ export function ExportStrategyPage({
               {strategy.steps.prep.length > 0 && (
                 <div>
                   <div className="mb-1 flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700">1</span>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Prep</p>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700">1</span>
+                    <p className="text-sm font-semibold uppercase tracking-wide text-neutral-600">Prep</p>
                   </div>
                   <ul className="flex flex-col gap-1 pl-2">
                     {strategy.steps.prep.map((step, i) => (
@@ -65,8 +65,8 @@ export function ExportStrategyPage({
               {strategy.steps.during.length > 0 && (
                 <div>
                   <div className="mb-1 flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700">2</span>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">During</p>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700">2</span>
+                    <p className="text-sm font-semibold uppercase tracking-wide text-neutral-600">During</p>
                   </div>
                   <ul className="flex flex-col gap-1 pl-2">
                     {strategy.steps.during.map((step, i) => (
@@ -81,8 +81,8 @@ export function ExportStrategyPage({
               {strategy.steps.follow_up.length > 0 && (
                 <div>
                   <div className="mb-1 flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700">3</span>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Follow-Up</p>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700">3</span>
+                    <p className="text-sm font-semibold uppercase tracking-wide text-neutral-600">Follow-Up</p>
                   </div>
                   <ul className="flex flex-col gap-1 pl-2">
                     {strategy.steps.follow_up.map((step, i) => (
@@ -125,7 +125,7 @@ export function ExportStrategyPage({
             &ldquo;{strategy.supporting_excerpt}&rdquo;
           </blockquote>
         </div>
-        <p className="text-xs leading-normal text-neutral-600">
+        <p className="text-sm leading-normal text-neutral-600">
           {strategy.source.formatted || strategy.source_ref}
         </p>
       </div>

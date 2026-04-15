@@ -8,7 +8,7 @@ export function LeftRail() {
         <h2 className="font-heading text-sm font-bold tracking-tight text-neutral-800">
           Your Teaching Context
         </h2>
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-1 text-sm text-neutral-500">
           Your inputs shape every strategy recommendation
         </p>
       </div>

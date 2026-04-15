@@ -29,7 +29,7 @@ export function CollapsibleSection({
           {title}
           {titleExtra}
           {badge && !isOpen && (
-            <span className="rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700">
+            <span className="rounded-full bg-primary-100 px-2 py-0.5 text-sm font-medium text-primary-700">
               {badge}
             </span>
           )}

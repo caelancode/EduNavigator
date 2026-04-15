@@ -59,14 +59,9 @@ const NextQuestionSchema = z.object({
   options: z.array(z.string()).min(1).max(10),
 });
 
-const SuggestedActionSchema = z.object({
-  label: z.string().min(1).max(60),
-});
-
 const ContextUpdateSchema = z.object({
   updates: AIContextUpdatesSchema,
   nextQuestion: NextQuestionSchema.optional(),
-  suggestedActions: z.array(SuggestedActionSchema).max(3).optional(),
 });
 
 // ── Public API ──────────────────────────────────────────────────────────────
@@ -84,14 +79,13 @@ export function validateContextUpdate(
     return null;
   }
 
-  const { updates, nextQuestion, suggestedActions } = result.data;
+  const { updates, nextQuestion } = result.data;
 
-  // Reject degenerate updates: empty updates with no question and no actions
+  // Reject degenerate updates: empty updates with no question
   const hasUpdates = Object.keys(updates).length > 0;
   const hasQuestion = nextQuestion !== undefined;
-  const hasActions = suggestedActions !== undefined && suggestedActions.length > 0;
 
-  if (!hasUpdates && !hasQuestion && !hasActions) {
+  if (!hasUpdates && !hasQuestion) {
     return null;
   }
 
@@ -104,15 +98,8 @@ export function validateContextUpdate(
       }
     : undefined;
 
-  // Sanitize and cap suggested actions
-  const sanitizedActions = suggestedActions
-    ?.slice(0, 3)
-    .map((a) => ({ label: DOMPurify.sanitize(a.label) }))
-    .filter((a) => a.label.length > 0);
-
   return {
     updates: updates as ContextUpdate['updates'],
     nextQuestion: sanitizedQuestion,
-    suggestedActions: sanitizedActions?.length ? sanitizedActions : undefined,
   };
 }

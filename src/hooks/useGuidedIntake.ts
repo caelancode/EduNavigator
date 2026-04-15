@@ -8,7 +8,7 @@ import {
   GRADE_BAND_OPTIONS,
   SUPPORT_AREA_OPTIONS,
 } from '../constants/left-rail-options';
-import { VALUE_LABELS } from '../constants/system-prompt';
+
 import { markSupportAreaSynced, markSubAreaSynced, markGradeBandSynced } from './useLeftRailIntakeSync';
 import type { GradeBand } from '../types/left-rail';
 import type { IntakeStage, ChatMessage } from '../types/chat';
@@ -39,19 +39,6 @@ function makeLocalUserMessage(content: string): ChatMessage {
   };
 }
 
-function buildConfirmContent(
-  supportArea: string | null,
-  subArea: string | null,
-  gradeBand: string,
-): string {
-  const supportLabel = VALUE_LABELS[supportArea ?? ''] ?? supportArea ?? '';
-  const subAreaLabel = VALUE_LABELS[subArea ?? ''] ?? subArea ?? '';
-  const gradeLabel = VALUE_LABELS[gradeBand] ?? gradeBand;
-  const contextSummary = [supportLabel, subAreaLabel, gradeLabel]
-    .filter(Boolean)
-    .join(' · ');
-  return `Here's what I'll be working with:\n**${contextSummary}**\n\nWant me to find strategies based on this, or is there more about the student or situation that would help? You can type below, or use the sidebar to add details like grouping, setting, or learner characteristics. The more context I have, the more targeted the advice.`;
-}
 
 export function useGuidedIntake() {
   const { state: chatState, dispatch: chatDispatch } = useChat();
@@ -119,19 +106,12 @@ export function useGuidedIntake() {
       }
 
       if (leftRailState.gradeBand) {
-        // Grade band already known from the sidebar — skip to confirm.
-        const confirmContent = buildConfirmContent(
-          leftRailState.supportArea,
-          value,
-          leftRailState.gradeBand,
-        );
-        chatDispatch({
-          type: 'ADD_MESSAGE',
-          payload: makeLocalAssistantMessage(confirmContent, {
-            actionButton: { label: 'Find Strategies' },
-          }),
+        // Grade band already known — fire API immediately.
+        chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'complete' });
+        send('Find evidence-based strategies for my current context.', {
+          hidden: true,
+          contextOverrides: { subArea: value },
         });
-        chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'confirm' });
       } else {
         // Normal flow: ask for grade band.
         const gradeBandValues = GRADE_BAND_OPTIONS.map((o) => o.value);
@@ -153,7 +133,7 @@ export function useGuidedIntake() {
       chatDispatch,
       leftRailDispatch,
       leftRailState.gradeBand,
-      leftRailState.supportArea,
+      send,
     ],
   );
 
@@ -165,18 +145,9 @@ export function useGuidedIntake() {
       });
 
       if (leftRailState.gradeBand) {
-        const confirmContent = buildConfirmContent(
-          leftRailState.supportArea,
-          leftRailState.subArea,
-          leftRailState.gradeBand,
-        );
-        chatDispatch({
-          type: 'ADD_MESSAGE',
-          payload: makeLocalAssistantMessage(confirmContent, {
-            actionButton: { label: 'Find Strategies' },
-          }),
-        });
-        chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'confirm' });
+        // Grade band already known — fire API immediately.
+        chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'complete' });
+        send('Find evidence-based strategies for my current context.', { hidden: true });
       } else {
         const gradeBandValues = GRADE_BAND_OPTIONS.map((o) => o.value);
         chatDispatch({
@@ -193,7 +164,7 @@ export function useGuidedIntake() {
         chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'grade_band' });
       }
     },
-    [chatDispatch, leftRailState.gradeBand, leftRailState.supportArea, leftRailState.subArea],
+    [chatDispatch, leftRailState.gradeBand, send],
   );
 
   const selectGradeBand = useCallback(
@@ -212,22 +183,15 @@ export function useGuidedIntake() {
         payload: makeLocalUserMessage(label),
       });
 
-      const confirmContent = buildConfirmContent(
-        leftRailState.supportArea,
-        leftRailState.subArea,
-        value,
-      );
-
-      chatDispatch({
-        type: 'ADD_MESSAGE',
-        payload: makeLocalAssistantMessage(confirmContent, {
-          actionButton: { label: 'Find Strategies' },
-        }),
+      // Skip the confirm stage — fire the API immediately and let the
+      // readiness barometer in the system prompt decide what to do.
+      chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'complete' });
+      send('Find evidence-based strategies for my current context.', {
+        hidden: true,
+        contextOverrides: { gradeBand: value as GradeBand },
       });
-
-      chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'confirm' });
     },
-    [chatDispatch, leftRailDispatch, leftRailState.supportArea, leftRailState.subArea],
+    [chatDispatch, leftRailDispatch, send],
   );
 
   const confirmAndSearch = useCallback(

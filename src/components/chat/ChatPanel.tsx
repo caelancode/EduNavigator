@@ -8,8 +8,8 @@ import { ErrorBanner } from '../ui';
 
 export function ChatPanel() {
   const { state, dispatch } = useChat();
-  const { retry } = useSendMessage();
-  useLeftRailIntakeSync();
+  const { send, retry } = useSendMessage();
+  useLeftRailIntakeSync(send);
 
   return (
     <div className="flex h-full flex-col">

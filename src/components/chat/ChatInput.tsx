@@ -87,7 +87,7 @@ export function ChatInput() {
           )}
         </button>
       </div>
-      <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-neutral-700">
+      <div className="mt-1.5 flex items-center justify-between gap-2 text-sm text-neutral-700">
         <span className="min-w-0">AI-generated strategies should be reviewed by qualified professionals. No personal data is collected.</span>
         {charRatio > 0.75 && (
           <span className={`shrink-0 tabular-nums transition-colors duration-300 ${charRatio > 0.95 ? 'font-semibold text-error-500' : charRatio > 0.8 ? 'text-warning-500' : 'text-neutral-700'}`}>{input.length}/{MAX_LENGTH}</span>

@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { useChat } from '../contexts/ChatContext';
 import { useLeftRail, leftRailReducer } from '../contexts/LeftRailContext';
+import type { LeftRailState } from '../types/left-rail';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import { useCrossReference } from '../contexts/CrossReferenceContext';
 import { sendMessage } from '../services/chat-service';
@@ -28,7 +29,7 @@ export function useSendMessage() {
   const abortRef = useRef<AbortController | null>(null);
 
   const send = useCallback(
-    async (text: string, options?: { hidden?: boolean }) => {
+    async (text: string, options?: { hidden?: boolean; contextOverrides?: Partial<LeftRailState> }) => {
       if (inFlight.current) return;
       inFlight.current = true;
       abortRef.current = new AbortController();
@@ -53,9 +54,13 @@ export function useSendMessage() {
       }
 
       try {
+        const effectiveContext = options?.contextOverrides
+          ? { ...leftRailState, ...options.contextOverrides }
+          : leftRailState;
+
         const result = await sendMessage(
           text,
-          leftRailState,
+          effectiveContext,
           [...chatState.messages, userMessage],
           chatState.sessionId,
           abortRef.current.signal,
@@ -97,11 +102,6 @@ export function useSendMessage() {
               citations: citations.length > 0 ? citations : undefined,
               strategyGeneration: currentGeneration,
               nextQuestion: result.contextUpdate?.nextQuestion,
-              suggestionChips: result.contextUpdate?.suggestedActions?.map((a) => ({
-                id: crypto.randomUUID(),
-                label: a.label,
-                message: a.label,
-              })),
             },
           });
 
@@ -111,11 +111,11 @@ export function useSendMessage() {
           const contextForStrategies =
             result.contextUpdate?.updates &&
             Object.keys(result.contextUpdate.updates).length > 0
-              ? leftRailReducer(leftRailState, {
+              ? leftRailReducer(effectiveContext, {
                   type: 'APPLY_AI_UPDATE',
                   payload: result.contextUpdate.updates,
                 })
-              : leftRailState;
+              : effectiveContext;
 
           // Apply AI context extraction to left rail state
           if (result.contextUpdate?.updates && Object.keys(result.contextUpdate.updates).length > 0) {
