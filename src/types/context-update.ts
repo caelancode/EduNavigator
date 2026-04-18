@@ -22,6 +22,9 @@ export interface AIContextUpdates {
   subArea?: string;
   outputPreference?: OutputPreference;
   rolePerspective?: RolePerspective;
+  /** Free-text summary of conversational details that don't map to structured fields
+   *  (e.g., specific diagnoses, activities, challenges, student interests). */
+  contextNotes?: string;
 }
 
 /**

@@ -10,6 +10,7 @@ export function buildApiRequest(
   message: string,
   history: ChatMessage[],
   sessionId: string,
+  strategiesDelivered: boolean,
 ): ApiRequest {
   // Filter out system messages, local guided-intake messages, and the static welcome message
   const conversationHistory = history.filter(
@@ -27,6 +28,7 @@ export function buildApiRequest(
       content: msg.content,
       timestamp: msg.timestamp,
     })),
+    strategiesDelivered,
   };
 }
 

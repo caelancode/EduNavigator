@@ -82,7 +82,7 @@ export function MultiSelect({
               {options.map((opt) => (
                 <label
                   key={opt.value}
-                  className="flex min-h-[36px] cursor-pointer items-start gap-2.5 rounded-md px-1 py-1.5 text-sm text-neutral-700 transition-colors hover:bg-neutral-50"
+                  className="flex min-h-[36px] cursor-pointer items-start gap-2.5 rounded-md px-1 py-1.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
                 >
                   <input
                     type="checkbox"
@@ -93,7 +93,7 @@ export function MultiSelect({
                   <span>
                     {opt.label}
                     {opt.description && (
-                      <span className="block text-sm leading-snug text-neutral-700">{opt.description}</span>
+                      <span className="block text-sm leading-snug font-medium text-neutral-700">{opt.description}</span>
                     )}
                   </span>
                 </label>
@@ -113,7 +113,7 @@ export function MultiSelect({
         {options.map((opt) => (
           <label
             key={opt.value}
-            className="flex min-h-[44px] items-start gap-2 cursor-pointer py-1.5 text-sm text-neutral-700"
+            className="flex min-h-[44px] items-start gap-2 cursor-pointer py-1.5 text-sm font-medium text-neutral-700"
           >
             <input
               type="checkbox"
@@ -124,7 +124,7 @@ export function MultiSelect({
             <span>
               {opt.label}
               {opt.description && (
-                <span className="block text-sm text-neutral-700">{opt.description}</span>
+                <span className="block text-sm font-medium text-neutral-700">{opt.description}</span>
               )}
             </span>
           </label>

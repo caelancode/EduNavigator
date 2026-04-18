@@ -16,8 +16,8 @@ export function TypingIndicator({ onCancel }: TypingIndicatorProps) {
   return (
     <div className="mb-6 flex w-full items-center justify-start gap-3" role="status">
       <div className="flex max-w-[85%] flex-row gap-3">
-        <div className="mt-1 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 shadow-sm">
-          <OwlAvatar className="h-4 w-4" />
+        <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 shadow-sm">
+          <OwlAvatar className="h-7 w-7" />
         </div>
         <div className="flex h-[52px] items-center gap-1.5 rounded-2xl rounded-tl-sm bg-chat-ai px-5 py-4 shadow-sm">
           <span

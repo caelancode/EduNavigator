@@ -14,7 +14,7 @@ function generateSessionId(): string {
 const welcomeMessage: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  content: 'What are you working on with this student?',
+  content: 'What is your primary support focus?',
   timestamp: Date.now(),
   // No nextQuestion here — WelcomeMessage component renders its own support area cards.
   // Adding nextQuestion would create duplicate chips in the chat thread.

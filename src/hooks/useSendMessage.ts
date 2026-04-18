@@ -29,7 +29,7 @@ export function useSendMessage() {
   const abortRef = useRef<AbortController | null>(null);
 
   const send = useCallback(
-    async (text: string, options?: { hidden?: boolean; contextOverrides?: Partial<LeftRailState> }) => {
+    async (text: string, options?: { hidden?: boolean; contextOverrides?: Partial<LeftRailState>; intakeCompletion?: boolean }) => {
       if (inFlight.current) return;
       inFlight.current = true;
       abortRef.current = new AbortController();
@@ -44,7 +44,9 @@ export function useSendMessage() {
 
       chatDispatch({ type: 'ADD_MESSAGE', payload: userMessage });
       chatDispatch({ type: 'SET_LOADING', payload: true });
-      setLoading(true);
+      if (!options?.intakeCompletion) {
+        setLoading(true);
+      }
 
       // Phase transition: user action triggers reflection or exploration
       if (phase === 'idle') {
@@ -63,6 +65,7 @@ export function useSendMessage() {
           effectiveContext,
           [...chatState.messages, userMessage],
           chatState.sessionId,
+          hasDeliveredStrategies.current,
           abortRef.current.signal,
         );
 

@@ -80,7 +80,7 @@ export function RadioSelect({
                 {opt.label}
               </span>
               {opt.description && (
-                <span className={`text-sm ${isSelected ? 'text-primary-600/80' : 'text-neutral-500'}`}>
+                <span className={`text-sm font-medium ${isSelected ? 'text-primary-600/80' : 'text-neutral-600'}`}>
                   {opt.description}
                 </span>
               )}

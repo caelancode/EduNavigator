@@ -185,12 +185,12 @@ export function ChatMessage({ message, isAnswered = false }: ChatMessageProps) {
         className={`flex gap-3 ${isUser ? 'max-w-[85%] flex-row-reverse' : 'max-w-[80%] flex-row'}`}
       >
         {!isUser && (
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 shadow-sm">
-            <OwlAvatar className="h-4 w-4" />
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 shadow-sm">
+            <OwlAvatar className="h-7 w-7" />
           </div>
         )}
         <div
-          className={`min-w-0 px-3.5 py-2 text-base leading-relaxed sm:px-4 sm:py-2.5 ${
+          className={`min-w-0 px-3.5 py-2 text-base font-medium leading-relaxed sm:px-4 sm:py-2.5 ${
             isUser
               ? 'rounded-2xl rounded-tr-md bg-chat-user text-neutral-800 shadow-sm'
               : 'rounded-2xl rounded-tl-md bg-chat-ai text-neutral-800'
@@ -215,10 +215,10 @@ export function ChatMessage({ message, isAnswered = false }: ChatMessageProps) {
           {!message.nextQuestion.isLocal && (
             <div className="flex w-full flex-col animate-fade-in-up motion-reduce:animate-none items-start mt-3">
               <div className="flex gap-3 max-w-[80%] flex-row">
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 shadow-sm">
-                  <OwlAvatar className="h-4 w-4" />
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 shadow-sm">
+                  <OwlAvatar className="h-7 w-7" />
                 </div>
-                <div className="min-w-0 px-3.5 py-2 text-base leading-relaxed sm:px-4 sm:py-2.5 rounded-2xl rounded-tl-md bg-chat-ai text-neutral-800">
+                <div className="min-w-0 px-3.5 py-2 text-base font-medium leading-relaxed sm:px-4 sm:py-2.5 rounded-2xl rounded-tl-md bg-chat-ai text-neutral-800">
                   {message.nextQuestion.text}
                 </div>
               </div>

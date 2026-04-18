@@ -51,7 +51,7 @@ export function QuestionChips({
               setHasBeenUsed(true);
               onSelect(value, label);
             }}
-            className={`rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1.5 text-sm font-medium text-primary-700 transition-colors ${
+            className={`rounded-full border border-primary-200 bg-primary-50 px-3.5 py-1.5 text-sm font-semibold text-primary-700 transition-colors ${
               disabled
                 ? 'pointer-events-none cursor-default'
                 : 'hover:border-primary-400 hover:bg-primary-100 active:bg-primary-200'

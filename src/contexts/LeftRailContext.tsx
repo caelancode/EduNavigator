@@ -30,6 +30,7 @@ export const initialLeftRailState: LeftRailState = {
   outputPreference: null,
   rolePerspective: null,
   stepNotes: {},
+  contextNotes: '',
   wizardCompleted: false,
   wizardStepIndex: 0,
   recentlyUpdatedFields: new Set(),
@@ -141,6 +142,11 @@ export function leftRailReducer(
         aiInferred.add('supportArea');
       }
       applyField('subArea', updates.subArea);
+
+      // contextNotes is always updated from AI — not a manually-settable field
+      if (typeof updates.contextNotes === 'string' && updates.contextNotes.trim()) {
+        next.contextNotes = updates.contextNotes.trim();
+      }
 
       return {
         ...next,

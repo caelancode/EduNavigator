@@ -63,14 +63,14 @@ export const StrategyCard = memo(function StrategyCard({
           </div>
 
           {/* Context tagline — full card width */}
-          <p className="text-sm leading-relaxed text-neutral-500 italic">
+          <p className="text-sm leading-relaxed font-medium text-neutral-600 italic">
             {strategy.context_tagline}
           </p>
 
           {/* Quick Version — full card width */}
           <div>
-            <p className="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-1">Quick Version</p>
-            <p className="text-sm leading-relaxed text-neutral-700">
+            <p className="text-sm font-semibold text-neutral-600 uppercase tracking-wide mb-1">Quick Version</p>
+            <p className="text-sm leading-relaxed font-medium text-neutral-700">
               {strategy.quick_version}
             </p>
           </div>
@@ -87,7 +87,7 @@ export const StrategyCard = memo(function StrategyCard({
           <div className="flex flex-col gap-4 pb-6">
             {/* ── Tier 2: Step-by-step ──────────────────────────────────── */}
             <div className="flex flex-col gap-4">
-              <h4 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
+              <h4 className="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
                 Step-by-Step
               </h4>
 
@@ -101,7 +101,7 @@ export const StrategyCard = memo(function StrategyCard({
                       </div>
                       <ul className="list-disc space-y-1.5 pl-4 marker:text-neutral-400">
                         {strategy.steps.prep.map((step, i) => (
-                          <li key={i} className="text-sm leading-relaxed text-neutral-700">
+                          <li key={i} className="text-sm leading-relaxed font-medium text-neutral-700">
                             <ReactMarkdown className="prose prose-sm max-w-none prose-p:my-0">{step}</ReactMarkdown>
                           </li>
                         ))}
@@ -117,7 +117,7 @@ export const StrategyCard = memo(function StrategyCard({
                       </div>
                       <ul className="list-disc space-y-1.5 pl-4 marker:text-neutral-400">
                         {strategy.steps.during.map((step, i) => (
-                          <li key={i} className="text-sm leading-relaxed text-neutral-700">
+                          <li key={i} className="text-sm leading-relaxed font-medium text-neutral-700">
                             <ReactMarkdown className="prose prose-sm max-w-none prose-p:my-0">{step}</ReactMarkdown>
                           </li>
                         ))}
@@ -133,7 +133,7 @@ export const StrategyCard = memo(function StrategyCard({
                       </div>
                       <ul className="list-disc space-y-1.5 pl-4 marker:text-neutral-400">
                         {strategy.steps.follow_up.map((step, i) => (
-                          <li key={i} className="text-sm leading-relaxed text-neutral-700">
+                          <li key={i} className="text-sm leading-relaxed font-medium text-neutral-700">
                             <ReactMarkdown className="prose prose-sm max-w-none prose-p:my-0">{step}</ReactMarkdown>
                           </li>
                         ))}
@@ -152,7 +152,7 @@ export const StrategyCard = memo(function StrategyCard({
             {/* ── Tier 3: Why This Works + Source (collapsed by default) ── */}
             <div className="flex flex-col rounded-xl border border-neutral-200 bg-neutral-50 px-4">
               <CollapsibleSection title="Why This Works" defaultOpen={false}>
-                <div className="prose prose-sm max-w-none leading-relaxed text-neutral-600 prose-p:my-1.5">
+                <div className="prose prose-sm max-w-none leading-relaxed font-medium text-neutral-600 prose-p:my-1.5">
                   <ReactMarkdown>{strategy.why_fits}</ReactMarkdown>
                 </div>
               </CollapsibleSection>
@@ -163,11 +163,11 @@ export const StrategyCard = memo(function StrategyCard({
                 badge={shortCitation}
               >
                 <div className="flex flex-col gap-3">
-                  <blockquote className="rounded-r-lg border-l-4 border-primary-300 bg-white p-3 italic leading-relaxed text-neutral-600 shadow-sm text-sm">
+                  <blockquote className="rounded-r-lg border-l-4 border-primary-300 bg-white p-3 italic leading-relaxed font-medium text-neutral-600 shadow-sm text-sm">
                     &ldquo;{strategy.supporting_excerpt}&rdquo;
                   </blockquote>
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm leading-normal text-neutral-600">{strategy.source.formatted || strategy.source_ref}</p>
+                    <p className="text-sm leading-normal font-medium text-neutral-600">{strategy.source.formatted || strategy.source_ref}</p>
                     <span className="shrink-0 rounded bg-neutral-100 px-1.5 py-0.5 text-sm font-medium text-neutral-700" title="This citation was generated by AI and should be verified before citing in professional documents">
                       AI-generated
                     </span>

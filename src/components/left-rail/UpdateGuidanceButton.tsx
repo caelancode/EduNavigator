@@ -67,7 +67,7 @@ export function UpdateGuidanceButton() {
   }, [state, chatDispatch]);
 
   return (
-    <div className="border-t border-neutral-100 bg-surface-50 px-5 py-4">
+    <div className="border-t border-neutral-300 bg-surface-50 px-5 py-4">
       <Button
         variant="primary"
         size="lg"

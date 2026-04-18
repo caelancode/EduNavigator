@@ -43,8 +43,18 @@ const AIContextUpdatesSchema = z
   .transform((obj) => {
     const cleaned: Record<string, string> = {};
     for (const [key, value] of Object.entries(obj)) {
-      if (!EXTRACTABLE_FIELDS.has(key)) continue;
       if (typeof value !== 'string') continue;
+
+      // contextNotes is free-text (not enum-validated), length-capped and sanitized
+      if (key === 'contextNotes') {
+        const trimmed = value.trim();
+        if (trimmed.length > 0 && trimmed.length <= 500) {
+          cleaned[key] = trimmed;
+        }
+        continue;
+      }
+
+      if (!EXTRACTABLE_FIELDS.has(key)) continue;
       const validValues = VALID_FIELD_VALUES[key];
       if (validValues && validValues.includes(value)) {
         cleaned[key] = value;

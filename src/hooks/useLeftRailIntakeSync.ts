@@ -108,11 +108,11 @@ export function useLeftRailIntakeSync(
       chatDispatch({
         type: 'ADD_MESSAGE',
         payload: makeLocalAssistantMessage(
-          `Got it — I've noted **${label}** from the sidebar. What's the main focus?`,
+          `Got it — I've noted **${label}** from the sidebar. What is your focus within ${label}?`,
           {
             nextQuestion: {
               field: 'subArea',
-              text: "What's the main focus?",
+              text: `What is your focus within ${label}?`,
               options: subAreaValues,
               isLocal: true,
             },
@@ -138,9 +138,9 @@ export function useLeftRailIntakeSync(
       });
 
       if (gradeBand !== null) {
-        // Grade band already set — fire API immediately.
+        // Grade band already set — fire API with neutral intake-completion message.
         chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'complete' });
-        send('Find evidence-based strategies for my current context.', { hidden: true });
+        send("I've just shared my support focus, sub-area, and grade band.", { hidden: true });
       } else {
         // Normal flow: ask for grade band.
         const gradeBandValues = GRADE_BAND_OPTIONS.map((o) => o.value);
@@ -173,9 +173,9 @@ export function useLeftRailIntakeSync(
         type: 'ADD_MESSAGE',
         payload: makeLocalUserMessage(gradeLabel),
       });
-      // Fire API immediately — barometer decides what to do.
+      // Fire API with neutral intake-completion message — readiness offer, not auto-strategies.
       chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'complete' });
-      send('Find evidence-based strategies for my current context.', { hidden: true });
+      send("I've just shared my support focus and grade band.", { hidden: true });
       return;
     }
   }, [

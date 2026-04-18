@@ -42,6 +42,8 @@ export interface LeftRailState {
   rolePerspective: RolePerspective | null;
   /** Per-field free-text notes (keyed by step ID) */
   stepNotes: Record<string, string>;
+  /** AI-generated summary of conversational context that doesn't map to structured fields */
+  contextNotes: string;
   /** Whether the setup wizard has been completed this session */
   wizardCompleted: boolean;
   /** Index of the currently active wizard step in the chat area */

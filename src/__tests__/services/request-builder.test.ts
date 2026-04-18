@@ -9,12 +9,14 @@ describe('buildApiRequest', () => {
       'Help me find strategies',
       [],
       'session-123',
+      false,
     );
 
     expect(result.sessionId).toBe('session-123');
     expect(result.message).toBe('Help me find strategies');
     expect(result.context.gradeBand).toBe('3_5');
     expect(result.history).toHaveLength(0);
+    expect(result.strategiesDelivered).toBe(false);
   });
 
   it('trims and limits message to 2000 characters', () => {
@@ -24,6 +26,7 @@ describe('buildApiRequest', () => {
       longMessage,
       [],
       's1',
+      false,
     );
     expect(result.message.length).toBeLessThanOrEqual(2000);
     expect(result.message.startsWith('x')).toBe(true);
@@ -35,6 +38,7 @@ describe('buildApiRequest', () => {
       'Hello\x00World\x1F!',
       [],
       's1',
+      false,
     );
     expect(result.message).toBe('HelloWorld!');
   });
@@ -53,8 +57,20 @@ describe('buildApiRequest', () => {
       'New message',
       history,
       's1',
+      false,
     );
     expect(result.history).toHaveLength(1);
     expect(result.history[0].content).toBe('Previous message');
+  });
+
+  it('passes strategiesDelivered flag', () => {
+    const result = buildApiRequest(
+      initialLeftRailState,
+      'Try another',
+      [],
+      's1',
+      true,
+    );
+    expect(result.strategiesDelivered).toBe(true);
   });
 });

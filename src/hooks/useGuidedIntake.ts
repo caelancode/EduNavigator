@@ -66,10 +66,10 @@ export function useGuidedIntake() {
 
       chatDispatch({
         type: 'ADD_MESSAGE',
-        payload: makeLocalAssistantMessage("What's the main focus?", {
+        payload: makeLocalAssistantMessage(`What is your focus within ${label}?`, {
           nextQuestion: {
             field: 'subArea',
-            text: "What's the main focus?",
+            text: `What is your focus within ${label}?`,
             options: subAreaValues,
             isLocal: true,
           },
@@ -108,9 +108,10 @@ export function useGuidedIntake() {
       if (leftRailState.gradeBand) {
         // Grade band already known — fire API immediately.
         chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'complete' });
-        send('Find evidence-based strategies for my current context.', {
+        send("I've just shared my support focus, sub-area, and grade band.", {
           hidden: true,
           contextOverrides: { subArea: value },
+          intakeCompletion: true,
         });
       } else {
         // Normal flow: ask for grade band.
@@ -147,7 +148,7 @@ export function useGuidedIntake() {
       if (leftRailState.gradeBand) {
         // Grade band already known — fire API immediately.
         chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'complete' });
-        send('Find evidence-based strategies for my current context.', { hidden: true });
+        send("I've just shared my support focus and grade band.", { hidden: true, intakeCompletion: true });
       } else {
         const gradeBandValues = GRADE_BAND_OPTIONS.map((o) => o.value);
         chatDispatch({
@@ -183,12 +184,13 @@ export function useGuidedIntake() {
         payload: makeLocalUserMessage(label),
       });
 
-      // Skip the confirm stage — fire the API immediately and let the
-      // readiness barometer in the system prompt decide what to do.
+      // Fire the API with a neutral intake-completion message so the system prompt
+      // presents a readiness offer (question + opt-in) rather than auto-generating strategies.
       chatDispatch({ type: 'SET_INTAKE_STAGE', payload: 'complete' });
-      send('Find evidence-based strategies for my current context.', {
+      send("I've just shared my support focus and grade band.", {
         hidden: true,
         contextOverrides: { gradeBand: value as GradeBand },
+        intakeCompletion: true,
       });
     },
     [chatDispatch, leftRailDispatch, send],

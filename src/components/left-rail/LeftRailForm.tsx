@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useLeftRail } from '../../contexts/LeftRailContext';
 import { useChat } from '../../contexts/ChatContext';
 import { MultiSelect } from '../ui';
@@ -14,6 +14,7 @@ import { OutputPreferences } from './OutputPreferences';
 import { RolePerspective } from './RolePerspective';
 import { TechnologyContext } from './TechnologyContext';
 import { UpdateGuidanceButton } from './UpdateGuidanceButton';
+import { ContextSummaryBar } from './ContextSummaryBar';
 import {
   SUPPORT_AREA_OPTIONS,
   SUB_AREA_OPTIONS,
@@ -117,8 +118,8 @@ export function LeftRailForm() {
   // Always use compact (accordion) layout — the left rail is now a context mirror, not the primary input
   const compact = true;
   void chatState;
-  const [openField, setOpenField] = useState<string | null>('supportArea');
-  const [openSection, setOpenSection] = useState<string | null>('support');
+  const [openField, setOpenField] = useState<string | null>(null);
+  const [openSection, setOpenSection] = useState<string | null>(null);
 
   const toggle = useCallback(
     (id: string) => setOpenField((prev) => (prev === id ? null : id)),
@@ -143,14 +144,6 @@ export function LeftRailForm() {
     setOpenField(null);
   }, []);
 
-  // Close all sections when conversation starts (wide → compact transition)
-  useEffect(() => {
-    if (compact) {
-      setOpenField(null);
-      setOpenSection(null);
-    }
-  }, [compact]);
-
   // Section completion for progress indicator
   const supportDone = state.supportArea !== null;
   const contextDone = state.gradeBand !== null || state.setting !== null || state.grouping !== null || state.timeRange !== null;
@@ -160,6 +153,24 @@ export function LeftRailForm() {
     || state.learnerCharacteristics.behavioralConsiderations.length > 0;
   const prefsDone = state.techContext !== null || state.outputPreference !== null || state.rolePerspective !== null;
   const sectionsCompleted = [supportDone, contextDone, learnerDone, prefsDone].filter(Boolean).length;
+
+  // Field-level count for compact layout progress bar
+  const totalFields = showSubArea ? 10 : 9;
+  const answeredFields = [
+    state.supportArea !== null,
+    showSubArea ? state.subArea !== null : null,
+    state.gradeBand !== null,
+    state.setting !== null,
+    state.grouping !== null,
+    state.timeRange !== null,
+    state.learnerCharacteristics.communicationLevel.length > 0 ||
+      state.learnerCharacteristics.mobilityLevel.length > 0 ||
+      state.learnerCharacteristics.sensoryConsiderations.length > 0 ||
+      state.learnerCharacteristics.behavioralConsiderations.length > 0,
+    state.techContext !== null,
+    state.outputPreference !== null,
+    state.rolePerspective !== null,
+  ].filter((v) => v === true).length;
 
   /* ------------------------------------------------------------------ */
   /*  WIDE LAYOUT — 4 collapsible section cards with progress indicator */
@@ -362,7 +373,7 @@ export function LeftRailForm() {
   /* ------------------------------------------------------------------ */
   return (
     <>
-      <div data-scroll-container="left-rail" className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-4 pt-1">
+      <div data-scroll-container="left-rail" className="flex-1 overflow-y-auto custom-scrollbar space-y-0.5 px-4 pb-4 pt-1">
         {/* Support focus */}
         <AccordionField
           id="supportArea"
@@ -373,6 +384,7 @@ export function LeftRailForm() {
           currentValue={state.supportArea ? (VALUE_LABELS[state.supportArea] ?? state.supportArea) : undefined}
           isHighlighted={state.recentlyUpdatedFields.has('supportArea')}
           isInferred={state.aiInferredFields.has('supportArea')}
+          isAnswered={state.supportArea !== null}
         >
           <SupportArea srOnlyLegend onSelect={handleSelect} />
         </AccordionField>
@@ -386,6 +398,7 @@ export function LeftRailForm() {
             currentValue={state.subArea ? (VALUE_LABELS[state.subArea] ?? state.subArea) : undefined}
             isHighlighted={state.recentlyUpdatedFields.has('subArea')}
             isInferred={state.aiInferredFields.has('subArea')}
+            isAnswered={state.subArea !== null}
             otherInput={
               state.subArea === 'other' ? (
                 <OtherTextInput stepId="subArea" onBlur={close} />
@@ -405,6 +418,7 @@ export function LeftRailForm() {
           currentValue={state.gradeBand ? (VALUE_LABELS[state.gradeBand] ?? state.gradeBand) : undefined}
           isHighlighted={state.recentlyUpdatedFields.has('gradeBand')}
           isInferred={state.aiInferredFields.has('gradeBand')}
+          isAnswered={state.gradeBand !== null}
         >
           <GradeBandSelect srOnlyLegend onSelect={handleSelect} />
         </AccordionField>
@@ -415,6 +429,7 @@ export function LeftRailForm() {
           isOpen={openField === 'setting'}
           onToggle={() => toggle('setting')}
           currentValue={state.setting ? (VALUE_LABELS[state.setting] ?? state.setting) : undefined}
+          isAnswered={state.setting !== null}
           otherInput={
             state.setting === 'other' ? (
               <OtherTextInput stepId="setting" onBlur={close} />
@@ -430,6 +445,7 @@ export function LeftRailForm() {
           isOpen={openField === 'grouping'}
           currentValue={state.grouping ? (VALUE_LABELS[state.grouping] ?? state.grouping) : undefined}
           onToggle={() => toggle('grouping')}
+          isAnswered={state.grouping !== null}
         >
           <GroupingSelect srOnlyLegend onSelect={handleSelect} />
         </AccordionField>
@@ -440,6 +456,7 @@ export function LeftRailForm() {
           isOpen={openField === 'timeRange'}
           onToggle={() => toggle('timeRange')}
           currentValue={state.timeRange ? (VALUE_LABELS[state.timeRange] ?? state.timeRange) : undefined}
+          isAnswered={state.timeRange !== null}
         >
           <TimeSelect srOnlyLegend onSelect={handleSelect} />
         </AccordionField>
@@ -450,6 +467,12 @@ export function LeftRailForm() {
           label="Learner Characteristics"
           isOpen={openField === 'learnerCharacteristics'}
           onToggle={() => toggle('learnerCharacteristics')}
+          isAnswered={
+            state.learnerCharacteristics.communicationLevel.length > 0 ||
+            state.learnerCharacteristics.mobilityLevel.length > 0 ||
+            state.learnerCharacteristics.sensoryConsiderations.length > 0 ||
+            state.learnerCharacteristics.behavioralConsiderations.length > 0
+          }
           currentValue={(() => {
             const allOptions = [
               ...COMMUNICATION_LEVEL_OPTIONS,
@@ -543,6 +566,7 @@ export function LeftRailForm() {
           isOpen={openField === 'techContext'}
           onToggle={() => toggle('techContext')}
           currentValue={state.techContext ? (VALUE_LABELS[state.techContext] ?? state.techContext) : undefined}
+          isAnswered={state.techContext !== null}
         >
           <TechnologyContext srOnlyLegend onSelect={handleSelect} />
         </AccordionField>
@@ -553,6 +577,7 @@ export function LeftRailForm() {
           isOpen={openField === 'outputPreference'}
           onToggle={() => toggle('outputPreference')}
           currentValue={state.outputPreference ? (VALUE_LABELS[state.outputPreference] ?? state.outputPreference) : undefined}
+          isAnswered={state.outputPreference !== null}
         >
           <OutputPreferences srOnlyLegend onSelect={handleSelect} />
         </AccordionField>
@@ -563,6 +588,7 @@ export function LeftRailForm() {
           isOpen={openField === 'rolePerspective'}
           onToggle={() => toggle('rolePerspective')}
           currentValue={state.rolePerspective ? (VALUE_LABELS[state.rolePerspective] ?? state.rolePerspective) : undefined}
+          isAnswered={state.rolePerspective !== null}
           otherInput={
             state.rolePerspective === 'other' ? (
               <OtherTextInput stepId="rolePerspective" onBlur={close} />
@@ -573,7 +599,29 @@ export function LeftRailForm() {
         </AccordionField>
       </div>
 
-      <UpdateGuidanceButton />
+      {/* Progress indicator — pinned below the field list */}
+      {answeredFields > 0 && (
+        <div className="flex-shrink-0 border-t border-neutral-200 px-5 py-3">
+          <div
+            className="h-1 w-full rounded-full bg-neutral-200"
+            role="progressbar"
+            aria-valuenow={answeredFields}
+            aria-valuemin={0}
+            aria-valuemax={totalFields}
+            aria-label="Context completion"
+          >
+            <div
+              className="h-1 rounded-full bg-primary-500 transition-[width] duration-500 ease-out motion-reduce:transition-none"
+              style={{ width: `${(answeredFields / totalFields) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      <ContextSummaryBar context={state} />
+      <div className="lg:hidden">
+        <UpdateGuidanceButton />
+      </div>
     </>
   );
 }

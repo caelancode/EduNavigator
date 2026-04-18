@@ -52,6 +52,7 @@ export function getSavedSettings(): LeftRailState | null {
       outputPreference: parsed.outputPreference ?? null,
       rolePerspective: parsed.rolePerspective ?? null,
       stepNotes: parsed.stepNotes ?? {},
+      contextNotes: parsed.contextNotes ?? '',
       wizardCompleted: false,
       wizardStepIndex: 0,
       recentlyUpdatedFields: new Set(),

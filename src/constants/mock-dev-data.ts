@@ -19,6 +19,7 @@ export const MOCK_LEFT_RAIL_STATE: LeftRailState = {
   outputPreference: 'step_by_step',
   rolePerspective: 'special_educator',
   stepNotes: {},
+  contextNotes: '',
   wizardCompleted: true,
   wizardStepIndex: 0,
   recentlyUpdatedFields: new Set(),

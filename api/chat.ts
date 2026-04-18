@@ -15,6 +15,7 @@ interface RequestBody {
     content: string;
     timestamp: number;
   }>;
+  strategiesDelivered?: boolean;
 }
 
 function isValidRequest(body: unknown): body is RequestBody {
@@ -109,7 +110,10 @@ export default async function handler(request: Request): Promise<Response> {
   }
 
   const contextString = buildContextString(body.context);
-  const systemPrompt = SYSTEM_PROMPT + contextString;
+  const deliveryState = body.strategiesDelivered
+    ? '\n\nSTRATEGY DELIVERY STATE: Strategies HAVE been delivered in this session.'
+    : '\n\nSTRATEGY DELIVERY STATE: Strategies have NOT yet been delivered in this session.';
+  const systemPrompt = SYSTEM_PROMPT + contextString + deliveryState;
 
   const messages = [
     ...body.history

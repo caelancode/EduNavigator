@@ -55,8 +55,8 @@ export function ChatInput() {
   const charRatio = input.length / MAX_LENGTH;
 
   return (
-    <div className="border-t border-neutral-200/60 bg-white px-3 pt-3 pb-2 sm:px-4">
-<div className={`flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 shadow-card transition-[border-color,box-shadow] duration-300 focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 sm:gap-3 sm:px-4 ${justSent ? 'animate-border-flash' : 'border-neutral-200'}`}>
+    <div className="bg-white px-3 py-2 sm:px-4 sm:py-2.5">
+<div className={`flex items-center gap-2 rounded-full border bg-white px-3 py-1 shadow-card transition-[border-color,box-shadow] duration-300 focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 sm:gap-3 sm:px-4 sm:py-1.5 ${justSent ? 'animate-border-flash' : 'border-neutral-200'}`}>
         <textarea
           ref={textareaRef}
           value={input}
@@ -72,7 +72,7 @@ export function ChatInput() {
           type="button"
           onClick={handleSend}
           disabled={!canSend}
-          className="btn-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white transition-colors hover:bg-primary-700 active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:opacity-30 disabled:hover:bg-primary-600"
+          className="btn-press flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white transition-colors hover:bg-primary-700 active:scale-95 motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:opacity-30 disabled:hover:bg-primary-600 sm:h-9 sm:w-9"
           aria-label="Send message"
         >
           {isLoading ? (
@@ -87,12 +87,11 @@ export function ChatInput() {
           )}
         </button>
       </div>
-      <div className="mt-1.5 flex items-center justify-between gap-2 text-sm text-neutral-700">
-        <span className="min-w-0">AI-generated strategies should be reviewed by qualified professionals. No personal data is collected.</span>
-        {charRatio > 0.75 && (
+      {charRatio > 0.75 && (
+        <div className="mt-1.5 flex items-center justify-end gap-2 text-xs text-neutral-400">
           <span className={`shrink-0 tabular-nums transition-colors duration-300 ${charRatio > 0.95 ? 'font-semibold text-error-500' : charRatio > 0.8 ? 'text-warning-500' : 'text-neutral-700'}`}>{input.length}/{MAX_LENGTH}</span>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

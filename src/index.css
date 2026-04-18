@@ -62,10 +62,10 @@
 
   /* Panel dividers — simple solid borders, shadows handle depth */
   .panel-divider-left {
-    border-color: rgba(211, 207, 200, 0.45);
+    border-color: #b0a99f;
   }
   .panel-divider-right {
-    border-color: rgba(211, 207, 200, 0.45);
+    border-color: #b0a99f;
   }
 
   /* Staggered animation delay utilities */
@@ -98,6 +98,11 @@
   /* Active button press */
   .btn-press:active {
     transform: scale(0.96);
+  }
+
+  /* Mobile nav bar — sliding pill indicator */
+  .mobile-nav-pill {
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Skeleton shimmer — directional loading indicator */
@@ -159,6 +164,13 @@
     }
     .btn-press:active {
       transform: none !important;
+    }
+    .mobile-nav-pill {
+      transition: none !important;
+    }
+    /* Disable inline drift/fade transitions on mobile nav labels */
+    .mobile-nav-label {
+      transition: none !important;
     }
   }
 }

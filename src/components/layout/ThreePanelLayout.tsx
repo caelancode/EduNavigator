@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
-import { BottomSheet } from './BottomSheet';
+import { MobileNavBar } from './MobileNavBar';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useCrossReference } from '../../contexts/CrossReferenceContext';
 import { useLeftRail } from '../../contexts/LeftRailContext';
 import { PanelContext } from '../../contexts/PanelContext';
+import { ExportButton } from '../export';
+import { UpdateGuidanceButton } from '../left-rail/UpdateGuidanceButton';
+import { ChatInput } from '../chat/ChatInput';
+import { CopyAllButton } from '../workspace/CopyAllButton';
 
 interface ThreePanelLayoutProps {
   leftPanel: ReactNode;
@@ -29,9 +33,11 @@ export function ThreePanelLayout({
   centerPanel,
   rightPanel,
 }: ThreePanelLayoutProps) {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isStrategiesOpen, setIsStrategiesOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'left' | 'chat' | 'workspace'>('chat');
   const [workspaceWidth, setWorkspaceWidth] = useState(getDefaultWorkspaceWidth);
+  const isDraggingRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const dragStartWidthRef = useRef(0);
   const { strategies } = useWorkspace();
   const { activeCitation } = useCrossReference();
   const { state: leftRailState } = useLeftRail();
@@ -41,22 +47,47 @@ export function ThreePanelLayout({
   const prevHadStrategies = useRef(false);
 
   // Widen workspace when strategies first arrive; reset when cleared.
+  // On mobile, auto-switch to the Strategies tab when results first appear.
   useEffect(() => {
     if (hasStrategies && !prevHadStrategies.current) {
       setWorkspaceWidth(getStrategiesWorkspaceWidth());
+      setActiveTab('workspace');
     } else if (!hasStrategies && prevHadStrategies.current) {
       setWorkspaceWidth(getDefaultWorkspaceWidth());
     }
     prevHadStrategies.current = hasStrategies;
   }, [hasStrategies]);
 
-  // Auto-open strategies sheet/panel when a citation is clicked
+  // Switch to workspace tab when a citation is clicked
   useEffect(() => {
     if (activeCitation) {
-      // Mobile: open bottom sheet
-      setIsStrategiesOpen(true);
+      setActiveTab('workspace');
     }
   }, [activeCitation]);
+
+  function handleDividerPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    isDraggingRef.current = true;
+    dragStartXRef.current = e.clientX;
+    dragStartWidthRef.current = workspaceWidth;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function handleDividerPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!isDraggingRef.current) return;
+    const delta = dragStartXRef.current - e.clientX;
+    // Left rail is 25% of viewport; workspace max = half of remaining space (equal to chat)
+    const availableWidth = window.innerWidth * 0.75;
+    const dynamicMax = Math.round(availableWidth / 2);
+    const newWidth = Math.max(
+      WORKSPACE_MIN_WIDTH,
+      Math.min(dynamicMax, dragStartWidthRef.current + delta),
+    );
+    setWorkspaceWidth(newWidth);
+  }
+
+  function handleDividerPointerUp() {
+    isDraggingRef.current = false;
+  }
 
   return (
     <PanelContext.Provider
@@ -68,194 +99,207 @@ export function ThreePanelLayout({
       }}
     >
       {/* ===== DESKTOP: 3-panel side-by-side (lg+) ===== */}
-      <div className="hidden flex-1 overflow-hidden lg:flex">
-        {/* Left Rail */}
-        <div className="w-1/4 flex-shrink-0 overflow-hidden">
-          <nav
-            role="navigation"
-            aria-label="Educator settings"
-            className="h-full overflow-y-auto border-r panel-divider-left bg-panel-rail custom-scrollbar"
-          >
-            {leftPanel}
-          </nav>
-        </div>
-
-        {/* Chat — grows to fill available space, elevated as primary surface */}
-        <div
-          role="log"
-          aria-label="Chat conversation"
-          className="relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden bg-panel-chat shadow-none"
-        >
-          {centerPanel}
-        </div>
-
-        {/* Workspace */}
-        <div
-          className="flex-shrink-0 overflow-hidden"
-          style={{ width: `${workspaceWidth}px` }}
-        >
+      <div className="hidden flex-1 flex-col overflow-hidden lg:flex">
+        {/* Shared header bar — one physical element so headers can never misalign at any zoom level */}
+        <div className="flex flex-shrink-0 border-b border-neutral-300 bg-neutral-100">
+          {/* Left rail title — matches w-1/4 column */}
+          <div className="w-1/4 flex-shrink-0 border-r border-neutral-300 px-5 py-4">
+            <div className="flex items-center gap-1.5">
+              <h2 className="font-heading text-sm font-bold tracking-tight text-neutral-800">
+                Your Teaching Context
+              </h2>
+              <div className="group relative">
+                <span className="flex h-4 w-4 cursor-default items-center justify-center rounded-full border border-neutral-400 text-[10px] font-bold leading-none text-neutral-400 select-none">i</span>
+                <div className="pointer-events-none absolute left-0 top-full z-50 mt-1.5 w-64 rounded-md bg-neutral-800 px-3 py-2 text-xs leading-relaxed text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+                  A structured snapshot of your teaching context — built through the conversation and editable at any time
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Chat title — matches flex-1 column */}
+          <div className="min-w-0 flex-1 px-5 py-4">
+            <div className="flex items-center gap-1.5">
+              <h2 className="font-heading text-sm font-bold tracking-tight text-neutral-800">
+                Conversation
+              </h2>
+              <div className="group relative">
+                <span className="flex h-4 w-4 cursor-default items-center justify-center rounded-full border border-neutral-400 text-[10px] font-bold leading-none text-neutral-400 select-none">i</span>
+                <div className="pointer-events-none absolute left-0 top-full z-50 mt-1.5 w-72 rounded-md bg-neutral-800 px-3 py-2 text-xs leading-relaxed text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+                  The primary space to describe your scenario and work through guided questions that shape your strategy recommendations
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Spacer matching the draggable resize handle width */}
+          <div className="w-3 flex-shrink-0 border-x border-neutral-300 bg-neutral-100" aria-hidden="true" />
+          {/* Workspace title — matches dynamic workspace column */}
           <div
-            role="region"
-            aria-label="Evidence-Based Strategies"
-            aria-live="polite"
-            className="h-full overflow-y-auto border-l panel-divider-right bg-panel-workspace custom-scrollbar"
+            className="flex-shrink-0 px-5 py-4"
+            style={{ width: `${workspaceWidth}px` }}
           >
-            {rightPanel}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <h2 className="font-heading text-sm font-bold tracking-tight text-neutral-800">
+                  Evidence-Based Strategies
+                  {strategies.length > 0 && (
+                    <span className="ml-1.5 font-medium text-neutral-600">
+                      ({strategies.length})
+                    </span>
+                  )}
+                </h2>
+                <div className="group relative">
+                  <span className="flex h-4 w-4 cursor-default items-center justify-center rounded-full border border-neutral-400 text-[10px] font-bold leading-none text-neutral-400 select-none">i</span>
+                  <div className="pointer-events-none absolute right-0 top-full z-50 mt-1.5 w-72 rounded-md bg-neutral-800 px-3 py-2 text-xs leading-relaxed text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+                    A curated selection of evidence-based strategies, tailored to the teaching context you&apos;ve built through the conversation
+                  </div>
+                </div>
+              </div>
+              {strategies.length > 0 && <ExportButton />}
+            </div>
+          </div>
+        </div>
+
+        {/* Three panel columns */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Left Rail */}
+          <div className="w-1/4 flex-shrink-0 overflow-hidden">
+            <nav
+              role="navigation"
+              aria-label="Educator settings"
+              className="h-full overflow-y-auto border-r border-neutral-300 bg-panel-rail custom-scrollbar"
+            >
+              {leftPanel}
+            </nav>
+          </div>
+
+          {/* Chat — grows to fill available space, elevated as primary surface */}
+          <div
+            role="log"
+            aria-label="Chat conversation"
+            className="relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden bg-panel-chat shadow-none"
+          >
+            {centerPanel}
+          </div>
+
+          {/* Draggable resize handle — chat | workspace */}
+          <div
+            role="separator"
+            aria-label="Resize chat and strategies panels"
+            aria-orientation="vertical"
+            className="group relative z-20 flex w-3 flex-shrink-0 cursor-col-resize items-center justify-center select-none border-x border-neutral-300 bg-neutral-100 transition-colors duration-150 hover:border-primary-200 hover:bg-primary-50"
+            onPointerDown={handleDividerPointerDown}
+            onPointerMove={handleDividerPointerMove}
+            onPointerUp={handleDividerPointerUp}
+          >
+            {/* Three-dot grip indicator */}
+            <div className="flex flex-col items-center gap-1">
+              <div className="h-1 w-1 rounded-full bg-neutral-400 transition-colors duration-150 group-hover:bg-primary-500" />
+              <div className="h-1 w-1 rounded-full bg-neutral-400 transition-colors duration-150 group-hover:bg-primary-500" />
+              <div className="h-1 w-1 rounded-full bg-neutral-400 transition-colors duration-150 group-hover:bg-primary-500" />
+            </div>
+          </div>
+
+          {/* Workspace */}
+          <div
+            className="flex-shrink-0 overflow-hidden"
+            style={{ width: `${workspaceWidth}px` }}
+          >
+            <div
+              role="region"
+              aria-label="Evidence-Based Strategies"
+              aria-live="polite"
+              className="h-full overflow-y-auto bg-panel-workspace custom-scrollbar"
+            >
+              {rightPanel}
+            </div>
+          </div>
+        </div>
+
+        {/* Shared footer bar — one physical element so footers can never misalign at any zoom level */}
+        <div className="flex flex-shrink-0">
+          {/* Left section — matches w-1/4 column */}
+          <div className="w-1/4 flex-shrink-0 border-r border-neutral-300">
+            <UpdateGuidanceButton />
+          </div>
+          {/* Chat section — matches flex-1 column */}
+          <div className="min-w-0 flex-1 border-t border-neutral-300 flex flex-col justify-center">
+            <ChatInput />
+          </div>
+          {/* Spacer matching the draggable resize handle width */}
+          <div className="w-3 flex-shrink-0 border-x border-t border-neutral-300 bg-neutral-100" aria-hidden="true" />
+          {/* Workspace section — Copy All + disclaimer */}
+          <div className="flex-shrink-0 flex items-center gap-3 px-5 py-3" style={{ width: `${workspaceWidth}px` }}>
+            {hasStrategies && (
+              <>
+                <CopyAllButton />
+                <p className="min-w-0 text-xs text-neutral-400">
+                  AI-generated strategies should be reviewed by qualified professionals. No personal data is collected.
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      {/* ===== TABLET: Chat + Workspace, Left Rail as bottom sheet (md–lg) ===== */}
-      <div className="relative hidden flex-1 overflow-hidden md:flex lg:hidden">
-        {/* Chat */}
-        <div
-          role="log"
-          aria-label="Chat conversation"
-          className="relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden bg-panel-chat shadow-none transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]"
-        >
-          {centerPanel}
-        </div>
+      {/* ===== MOBILE: Three-tab layout (< lg) ===== */}
+      <div className="flex flex-1 flex-col overflow-hidden lg:hidden">
+        {/* Animated tab bar */}
+        <MobileNavBar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          strategyCount={strategies.length}
+        />
 
-        {/* Workspace — slides in/out */}
-        <div
-          className={`relative flex flex-shrink-0 transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-            hasStrategies ? 'w-80' : 'w-0'
-          }`}
-        >
-          {/* Toggle tab */}
-          <button
-            type="button"
-            onClick={() => setIsStrategiesOpen((prev) => !prev)}
-            className="absolute -left-8 top-1/2 z-20 flex h-24 w-8 -translate-y-1/2 items-center justify-center rounded-l-lg border border-r-0 border-neutral-200 bg-surface-50 text-neutral-600 shadow-sm transition-all duration-200 hover:bg-primary-50 hover:text-primary-600 hover:shadow-md hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            aria-label={isStrategiesOpen ? 'Collapse strategies panel' : 'Expand strategies panel'}
-            aria-expanded={isStrategiesOpen}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={`h-4 w-4 transition-transform duration-300 ${isStrategiesOpen ? 'rotate-0' : 'rotate-180'}`}
-              aria-hidden="true"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-            {!isStrategiesOpen && hasStrategies && (
-              <span className="absolute -left-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white">
-                {strategies.length}
-              </span>
-            )}
-          </button>
-
+        {/* Panel content area — all three panels rendered, only active one visible */}
+        <div className="relative flex-1 overflow-hidden">
+          {/* Context (Left Rail) */}
           <div
+            id="panel-left"
+            role="region"
+            aria-label="Teaching context settings"
+            aria-hidden={activeTab !== 'left'}
+            className={`absolute inset-0 overflow-y-auto bg-panel-rail custom-scrollbar transition-opacity duration-200 ${
+              activeTab === 'left'
+                ? 'opacity-100 pointer-events-auto'
+                : 'opacity-0 pointer-events-none'
+            }`}
+          >
+            <nav role="navigation" aria-label="Educator settings">
+              {leftPanel}
+            </nav>
+          </div>
+
+          {/* Conversation (Chat) */}
+          <div
+            id="panel-chat"
+            role="log"
+            aria-label="Chat conversation"
+            aria-hidden={activeTab !== 'chat'}
+            className={`absolute inset-0 flex flex-col overflow-hidden bg-panel-chat transition-opacity duration-200 ${
+              activeTab === 'chat'
+                ? 'opacity-100 pointer-events-auto'
+                : 'opacity-0 pointer-events-none'
+            }`}
+          >
+            {centerPanel}
+          </div>
+
+          {/* Strategies (Workspace) */}
+          <div
+            id="panel-workspace"
             role="region"
             aria-label="Evidence-Based Strategies"
             aria-live="polite"
-            className={`h-full overflow-y-auto border-l panel-divider-right bg-panel-workspace custom-scrollbar transition-opacity duration-400 ${
-              hasStrategies ? 'w-full opacity-100' : 'w-0 overflow-hidden opacity-0'
+            aria-hidden={activeTab !== 'workspace'}
+            className={`absolute inset-0 overflow-y-auto bg-panel-workspace custom-scrollbar transition-opacity duration-200 ${
+              activeTab === 'workspace'
+                ? 'opacity-100 pointer-events-auto'
+                : 'opacity-0 pointer-events-none'
             }`}
           >
             {rightPanel}
           </div>
         </div>
-
-        {/* FAB — Open Settings (tablet) */}
-        <button
-          type="button"
-          onClick={() => setIsSettingsOpen(true)}
-          className="btn-press absolute bottom-6 left-4 z-10 flex items-center gap-2 rounded-full bg-primary-700 px-4 py-3 text-white shadow-lg transition-colors hover:bg-primary-800 active:scale-95 motion-reduce:transform-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-          aria-label="Open settings"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
-            <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
-            <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
-            <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
-            <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
-          </svg>
-          <span className="text-sm font-medium">Settings</span>
-        </button>
-
-        {/* Settings Bottom Sheet */}
-        <BottomSheet
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-          label="Educator settings"
-        >
-          <nav role="navigation" aria-label="Educator settings">
-            {leftPanel}
-          </nav>
-        </BottomSheet>
-      </div>
-
-      {/* ===== MOBILE: Chat only + bottom sheets (< md) ===== */}
-      <div className="relative flex flex-1 flex-col overflow-hidden md:hidden">
-        {/* Chat — always visible */}
-        <div
-          role="log"
-          aria-label="Chat conversation"
-          className="flex min-w-0 flex-1 flex-col overflow-hidden"
-        >
-          {centerPanel}
-        </div>
-
-        {/* FAB — Open Settings */}
-        <div className="absolute bottom-20 left-4 z-10 flex flex-col items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setIsSettingsOpen(true)}
-            className="btn-press flex h-12 w-12 items-center justify-center rounded-full bg-primary-700 text-white shadow-lg transition-colors hover:bg-primary-800 active:scale-95 motion-reduce:transform-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-            aria-label="Open settings"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
-              <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
-              <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
-              <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
-              <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
-            </svg>
-          </button>
-          <span className="text-sm font-medium text-neutral-600" aria-hidden="true">Settings</span>
-        </div>
-
-        {/* Strategies Pill — shows when strategies exist */}
-        {strategies.length > 0 && (
-          <div className="pointer-events-none absolute bottom-20 left-0 right-0 z-10 flex justify-center">
-            <button
-              type="button"
-              onClick={() => setIsStrategiesOpen(true)}
-              className="pointer-events-auto flex items-center gap-2 rounded-full bg-primary-700 px-5 py-2.5 text-sm font-medium text-white shadow-lg transition-all animate-scale-in motion-reduce:animate-none hover:-translate-y-0.5 hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-            >
-              View {strategies.length} {strategies.length === 1 ? 'Strategy' : 'Strategies'}
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
-                <line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" />
-              </svg>
-            </button>
-          </div>
-        )}
-
-        {/* Settings Bottom Sheet */}
-        <BottomSheet
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-          label="Educator settings"
-        >
-          <nav role="navigation" aria-label="Educator settings">
-            {leftPanel}
-          </nav>
-        </BottomSheet>
-
-        {/* Strategies Bottom Sheet */}
-        <BottomSheet
-          isOpen={isStrategiesOpen}
-          onClose={() => setIsStrategiesOpen(false)}
-          label="Evidence-Based Strategies"
-        >
-          <div role="region" aria-label="Evidence-Based Strategies">
-            {rightPanel}
-          </div>
-        </BottomSheet>
       </div>
     </PanelContext.Provider>
   );

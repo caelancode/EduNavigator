@@ -16,6 +16,7 @@ interface RequestBody {
   message: string;
   context: Record<string, unknown>;
   history: HistoryMessage[];
+  strategiesDelivered?: boolean;
 }
 
 export default defineConfig(({ mode }) => {
@@ -56,7 +57,10 @@ export default defineConfig(({ mode }) => {
                     ) as RequestBody;
 
                     const contextString = buildContextString(body.context);
-                    const systemPrompt = SYSTEM_PROMPT + contextString;
+                    const deliveryState = body.strategiesDelivered
+                      ? '\n\nSTRATEGY DELIVERY STATE: Strategies HAVE been delivered in this session.'
+                      : '\n\nSTRATEGY DELIVERY STATE: Strategies have NOT yet been delivered in this session.';
+                    const systemPrompt = SYSTEM_PROMPT + contextString + deliveryState;
 
                     const messages = [
                       ...body.history

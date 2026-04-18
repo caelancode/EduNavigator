@@ -1,5 +1,29 @@
 import { useRef, useEffect, type ReactNode } from 'react';
 
+function renderValueChips(value: string) {
+  const parts = value.split(', ').map((s) => s.trim()).filter(Boolean);
+  const MAX_CHIPS = 2;
+  const visible = parts.slice(0, MAX_CHIPS);
+  const overflow = parts.length - MAX_CHIPS;
+  return (
+    <>
+      {visible.map((part) => (
+        <span
+          key={part}
+          className="inline-flex max-w-[12rem] items-center truncate rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800"
+        >
+          {part}
+        </span>
+      ))}
+      {overflow > 0 && (
+        <span className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-600">
+          +{overflow} more
+        </span>
+      )}
+    </>
+  );
+}
+
 interface AccordionFieldProps {
   id: string;
   label: string;
@@ -14,6 +38,8 @@ interface AccordionFieldProps {
   isInferred?: boolean;
   /** Whether this field was just updated by AI (triggers highlight animation) */
   isHighlighted?: boolean;
+  /** Whether this field has a value selected — controls status dot color. */
+  isAnswered?: boolean;
 }
 
 export function AccordionField({
@@ -27,6 +53,7 @@ export function AccordionField({
   currentValue,
   isInferred,
   isHighlighted,
+  isAnswered,
 }: AccordionFieldProps) {
   const headerId = `accordion-header-${id}`;
   const bodyId = `accordion-body-${id}`;
@@ -41,7 +68,10 @@ export function AccordionField({
   }, [isOpen]);
 
   return (
-    <div ref={containerRef} className={`border-b border-neutral-200/60 ${isHighlighted ? 'animate-field-highlight' : ''}`}>
+    <div
+      ref={containerRef}
+      className={`rounded-lg transition-colors duration-300 ${isAnswered ? 'bg-primary-50/40' : ''} ${isHighlighted ? 'animate-field-highlight' : ''}`}
+    >
       <button
         id={headerId}
         type="button"
@@ -51,10 +81,14 @@ export function AccordionField({
         className="group flex w-full items-center justify-between px-1 py-2 text-left"
       >
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="flex items-center gap-1.5 font-heading text-sm font-semibold text-neutral-800 group-hover:text-neutral-900">
+          <span className="flex items-center gap-2.5 font-heading text-sm font-bold text-neutral-900 group-hover:text-neutral-900">
+            <span
+              aria-hidden="true"
+              className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full transition-all duration-300 ${isAnswered ? 'bg-primary-600' : 'border-2 border-neutral-300 bg-transparent'}`}
+            />
             {label}
-            {required && (
-              <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-sm font-semibold text-red-700 ring-1 ring-inset ring-red-200" aria-label="required">
+            {required && !isAnswered && (
+              <span className="inline-flex items-center rounded-full bg-red-50 px-1.5 py-0.5 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-200" aria-label="required">
                 Required
               </span>
             )}
@@ -65,13 +99,13 @@ export function AccordionField({
             )}
           </span>
           {!isOpen && currentValue && (
-            <span className="truncate text-sm text-neutral-500">
-              {currentValue}
+            <span className="flex flex-wrap items-center gap-1 pl-5 pt-0.5">
+              {renderValueChips(currentValue)}
             </span>
           )}
         </span>
         <svg
-          className={`ml-2 h-4 w-4 shrink-0 text-neutral-400 transition-transform duration-200 motion-reduce:transition-none ${isOpen ? 'rotate-180' : ''}`}
+          className={`ml-2 h-4 w-4 shrink-0 text-neutral-500 transition-transform duration-200 group-hover:text-neutral-700 motion-reduce:transition-none ${isOpen ? 'rotate-180' : ''}`}
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"

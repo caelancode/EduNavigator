@@ -39,7 +39,7 @@ export function OtherTextInput({ stepId, onBlur }: OtherTextInputProps) {
       <textarea
         id={`other-note-${stepId}`}
         ref={textareaRef}
-        className="w-full resize-none rounded-lg border border-neutral-200 bg-surface-50 px-3 py-2 text-sm text-neutral-700 shadow-card placeholder:text-neutral-600 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+        className="w-full resize-none rounded-lg border border-neutral-200 bg-surface-50 px-3 py-2 text-sm font-medium text-neutral-700 shadow-card placeholder:text-neutral-600 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
         placeholder="Describe what you're looking for..."
         rows={2}
         maxLength={500}

@@ -8,6 +8,7 @@ export interface ApiRequest {
   message: string;
   context: LeftRailState;
   history: ChatMessage[];
+  strategiesDelivered: boolean;
 }
 
 export type ApiErrorCode =

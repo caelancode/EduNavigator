@@ -24,7 +24,9 @@ export function ChatPanel() {
       )}
       <MessageList />
       <ReadyForStrategiesButton />
-      <ChatInput />
+      <div className="lg:hidden border-t border-neutral-300">
+        <ChatInput />
+      </div>
     </div>
   );
 }
